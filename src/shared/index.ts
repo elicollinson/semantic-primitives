@@ -2,4 +2,9 @@
  * Shared utilities and types
  */
 
-export { type SemanticEqualsResult } from './types.ts';
+export {
+  type SemanticEqualsResult,
+  type ValidateResult,
+  type ClassifyResult,
+  type InferTypeResult,
+} from './types.ts';

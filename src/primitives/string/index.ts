@@ -7,7 +7,11 @@
 
 import type { LLMClient } from '../../llm/client.ts';
 import { getClient } from '../../llm/client.ts';
-import type { SemanticEqualsResult } from '../../shared/types.ts';
+import type {
+  SemanticEqualsResult,
+  ValidateResult,
+  ClassifyResult,
+} from '../../shared/types.ts';
 import {
   semanticallyEqualsPrompt,
   classifyPrompt,
@@ -21,19 +25,11 @@ import {
   suggestCorrectionsPrompt,
 } from './string.prompts.ts';
 
-export type { SemanticEqualsResult } from '../../shared/types.ts';
-
-/** Result of string classification */
-export interface ClassifyResult {
-  category: string;
-  confidence: number;
-}
-
-/** Result of semantic validation */
-export interface ValidateResult {
-  valid: boolean;
-  issues: string[];
-}
+export type {
+  SemanticEqualsResult,
+  ValidateResult,
+  ClassifyResult,
+} from '../../shared/types.ts';
 
 /** Result of intent detection */
 export interface DetectIntentResult {
