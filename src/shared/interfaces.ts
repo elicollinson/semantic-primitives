@@ -128,12 +128,12 @@ export interface Comparable<T, TResult extends SemanticEqualsResult = SemanticEq
    *
    * @param other - The value to compare with
    * @param options - Optional comparison options
-   * @returns Equivalence result with confidence score
+   * @returns Equivalence result with confidence score (sync or async)
    */
   semanticallyEquals(
     other: T | unknown,
     options?: Record<string, unknown>
-  ): TResult;
+  ): TResult | Promise<TResult>;
 }
 
 /**
@@ -150,9 +150,9 @@ export interface Explainable {
    * Generate a human-readable explanation.
    *
    * @param context - Optional context for more relevant explanation
-   * @returns Human-readable description
+   * @returns Human-readable description (sync or async)
    */
-  explain(context?: string): string;
+  explain(context?: string): string | Promise<string>;
 }
 
 /**
@@ -165,9 +165,9 @@ export interface Describable extends Explainable {
    * Describe the value in context.
    *
    * @param context - Optional context for description
-   * @returns Human-readable description
+   * @returns Human-readable description (sync or async)
    */
-  describe(context?: string): string;
+  describe(context?: string): string | Promise<string>;
 }
 
 /**
@@ -185,9 +185,9 @@ export interface Validatable<TResult extends ValidateResult = ValidateResult> {
    * Validate the value against semantic rules.
    *
    * @param rules - Natural language validation rules
-   * @returns Validation result with issues
+   * @returns Validation result with issues (sync or async)
    */
-  validate(rules: string[]): TResult;
+  validate(rules: string[]): TResult | Promise<TResult>;
 }
 
 /**
@@ -201,9 +201,9 @@ export interface ContextValidatable {
    * Check if the value is reasonable for a given context.
    *
    * @param context - The context to validate against
-   * @returns Reasonableness assessment with explanation
+   * @returns Reasonableness assessment with explanation (sync or async)
    */
-  isReasonable(context: string): ReasonableResult;
+  isReasonable(context: string): ReasonableResult | Promise<ReasonableResult>;
 }
 
 /**
@@ -240,9 +240,9 @@ export interface TypeInferable {
   /**
    * Infer the semantic type of this value.
    *
-   * @returns Inferred type with confidence
+   * @returns Inferred type with confidence (sync or async)
    */
-  inferType(): InferTypeResult;
+  inferType(): InferTypeResult | Promise<InferTypeResult>;
 }
 
 /**
@@ -254,9 +254,20 @@ export interface PurposeInferable {
   /**
    * Infer the purpose of this value.
    *
-   * @returns Inferred purpose with confidence
+   * @returns Inferred purpose with confidence (sync or async)
    */
-  inferPurpose(): InferPurposeResult;
+  inferPurpose(): InferPurposeResult | Promise<InferPurposeResult>;
+}
+
+/** Schema inference result type */
+export interface InferSchemaResultType {
+  type?: string;
+  name?: string;
+  properties?: Record<string, string | { type: string; purpose?: string }>;
+  fields?: Record<string, { type: string; purpose: string; format?: string }>;
+  required?: string[];
+  optional?: string[];
+  confidence: number;
 }
 
 /**
@@ -268,17 +279,9 @@ export interface SchemaInferable {
   /**
    * Infer the schema of this value.
    *
-   * @returns Inferred schema with field descriptions
+   * @returns Inferred schema with field descriptions (sync or async)
    */
-  inferSchema(): {
-    type?: string;
-    name?: string;
-    properties?: Record<string, string | { type: string; purpose?: string }>;
-    fields?: Record<string, { type: string; purpose: string; format?: string }>;
-    required?: string[];
-    optional?: string[];
-    confidence: number;
-  };
+  inferSchema(): InferSchemaResultType | Promise<InferSchemaResultType>;
 }
 
 /**
@@ -291,9 +294,9 @@ export interface Classifiable<TResult extends ClassifyResult = ClassifyResult> {
   /**
    * Classify the value into a category.
    *
-   * @returns Classification result
+   * @returns Classification result (sync or async)
    */
-  classify(): TResult;
+  classify(...args: unknown[]): TResult | Promise<TResult>;
 }
 
 /**
@@ -365,10 +368,10 @@ export interface Summarizable {
   /**
    * Generate a summary of the value.
    *
-   * @param options - Optional summarization options
-   * @returns Human-readable summary
+   * @param options - Optional summarization options (or maxLength for backwards compatibility)
+   * @returns Human-readable summary (sync or async)
    */
-  summarize(options?: { maxLength?: number; focus?: string }): string;
+  summarize(options?: { maxLength?: number; focus?: string } | number): string | Promise<string>;
 }
 
 /**
@@ -402,6 +405,15 @@ export interface SafetyAssessable {
   isSafeFor?(context: string): SafetyResult;
 }
 
+/** Sensitivity assessment result */
+export interface SensitivityAssessment {
+  sensitive?: boolean;
+  hasSensitive?: boolean;
+  types?: string[];
+  type?: string;
+  recommendation?: string;
+}
+
 /**
  * Capability for sensitivity detection.
  *
@@ -412,25 +424,16 @@ export interface SensitivityDetectable {
    * Check for sensitive data.
    *
    * @param field - Optional field to check
-   * @returns Sensitivity assessment
+   * @returns Sensitivity assessment (sync or async)
    */
-  isSensitive?(field?: string): {
-    sensitive: boolean;
-    hasSensitive?: boolean;
-    types?: string[];
-    type?: string;
-    recommendation?: string;
-  };
+  isSensitive?(field?: string): SensitivityAssessment | Promise<SensitivityAssessment>;
 
   /**
    * Check if value contains sensitive information.
    *
-   * @returns Sensitivity assessment
+   * @returns Sensitivity assessment (sync or async)
    */
-  containsSensitive?(): {
-    hasSensitive: boolean;
-    types: string[];
-  };
+  containsSensitive?(): { hasSensitive: boolean; types: string[] } | Promise<{ hasSensitive: boolean; types: string[] }>;
 }
 
 // =============================================================================
@@ -759,17 +762,17 @@ export interface UnitConvertible<TSelf> {
    *
    * @param toUnit - Target unit
    * @param fromUnit - Source unit (optional, can be inferred)
-   * @returns Converted value
+   * @returns Converted value (sync or async)
    */
-  convert(toUnit: string, fromUnit?: string): TSelf;
+  convert(toUnit: string, fromUnit?: string): TSelf | Promise<TSelf>;
 
   /**
    * Infer the unit of this value.
    *
    * @param context - Context for inference
-   * @returns Inferred unit with confidence
+   * @returns Inferred unit with confidence (sync or async)
    */
-  inferUnit(context: string): { unit: string; confidence: number };
+  inferUnit(context: string): { unit: string; confidence: number } | Promise<{ unit: string; confidence: number }>;
 }
 
 // =============================================================================
