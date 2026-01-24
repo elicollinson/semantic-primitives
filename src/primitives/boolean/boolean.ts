@@ -5,6 +5,7 @@
 
 import type { LLMClient } from '../../llm/client.ts';
 import { getClient } from '../../llm/client.ts';
+import type { SemanticEqualsResult } from '../../shared/types.ts';
 import {
   BOOLEAN_SYSTEM_PROMPT,
   createFromPrompt,
@@ -14,16 +15,12 @@ import {
   createExtractConditionsPrompt,
 } from './prompts.ts';
 
+export type { SemanticEqualsResult } from '../../shared/types.ts';
+
 /** Options for parsing natural language to boolean */
 export interface FromOptions {
   locale?: string;
   context?: string;
-}
-
-/** Result of semantic equality comparison */
-export interface SemanticEqualsResult {
-  equivalent: boolean;
-  confidence: number;
 }
 
 /** Categories of boolean expressions */

@@ -3,18 +3,15 @@
  * LLM-enhanced primitive types with semantic understanding
  */
 
+// Shared types
+export { type SemanticEqualsResult } from '../shared/types.ts';
+
 // SemanticBoolean
-export {
-  SemanticBoolean,
-  type FromOptions,
-  type SemanticEqualsResult,
-  type BooleanCategory,
-} from './boolean/index.ts';
+export { SemanticBoolean, type FromOptions, type BooleanCategory } from './boolean/index.ts';
 
 // SemanticString
 export {
   SemanticString,
-  type SemanticEqualsResult as StringEqualsResult,
   type ClassifyResult,
   type ValidateResult,
   type DetectIntentResult,
