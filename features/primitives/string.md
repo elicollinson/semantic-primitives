@@ -155,3 +155,55 @@ interface SemanticString {
   suggestCorrections(): Array<{ original: string; suggestion: string; reason?: string }>;
 }
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+
+The implementation follows the project's directory conventions:
+
+- **`src/primitives/string.ts`** - Main `SemanticString` class implementation
+- **`src/primitives/string.prompts.ts`** - LLM prompt templates for each method
+- **`src/primitives/index.ts`** - Module exports
+- **`src/primitives/__tests__/string.test.ts`** - Comprehensive unit tests with mocked LLM
+
+### Architecture Decisions
+
+1. **Factory Pattern**: Uses `SemanticString.from(value)` static factory instead of constructor to enable future caching or pooling strategies.
+
+2. **Dependency Injection**: The `LLMClient` can be injected via the factory method for testing and flexibility. Defaults to the global client singleton.
+
+3. **Prompt Separation**: All LLM prompts are kept in a separate `string.prompts.ts` file for:
+   - Easy prompt iteration and improvement
+   - Potential prompt versioning
+   - Clean separation of concerns
+
+4. **JSON-Only Responses**: All prompts explicitly request JSON output with specified schemas to ensure parseable, structured responses.
+
+5. **Low Temperature**: Most methods use `temperature: 0.1` for consistent, deterministic results. Only `summarize()` uses `0.3` to allow slight creativity.
+
+### Type Exports
+
+The following types are exported for consumer use:
+
+- `SemanticEqualsResult`
+- `ClassifyResult`
+- `ValidateResult`
+- `DetectIntentResult`
+- `DetectLanguageResult`
+- `ContainsSensitiveResult`
+- `Correction`
+
+### Testing Strategy
+
+- All tests mock the `LLMClient` to avoid actual API calls
+- Tests verify both the response parsing and prompt construction
+- 71 total tests covering all 10 semantic methods plus basic functionality
+
+### Deviations from Spec
+
+1. **`containsSensitive()` positions**: The spec shows `positions: [10-21]` but the implementation returns only `types` array without position tracking. Position tracking would require additional LLM response parsing complexity.
+
+2. **All methods are async**: Unlike the spec's synchronous interface, all semantic methods return Promises since they require LLM calls.

@@ -5,3 +5,6 @@
 
 // Re-export LLM module
 export * from './llm/index.ts';
+
+// Re-export primitives module
+export * from './primitives/index.ts';
