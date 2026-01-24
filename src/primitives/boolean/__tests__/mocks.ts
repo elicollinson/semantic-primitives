@@ -3,8 +3,8 @@
  */
 
 import { mock } from 'bun:test';
-import type { LLMClient } from '../../llm/client.ts';
-import type { LLMResponse, CompletionOptions } from '../../llm/types.ts';
+import type { LLMClient } from '../../../llm/client.ts';
+import type { LLMResponse, CompletionOptions } from '../../../llm/types.ts';
 
 /** Mock response for "from" method - affirmative */
 export const mockFromAffirmativeResponse = {

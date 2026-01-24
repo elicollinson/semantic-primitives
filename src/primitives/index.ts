@@ -9,4 +9,4 @@ export {
   type FromOptions,
   type SemanticEqualsResult,
   type BooleanCategory,
-} from './boolean.ts';
+} from './boolean/index.ts';

@@ -3,8 +3,8 @@
  * A boolean type with LLM-powered semantic understanding
  */
 
-import type { LLMClient } from '../llm/client.ts';
-import { getClient } from '../llm/client.ts';
+import type { LLMClient } from '../../llm/client.ts';
+import { getClient } from '../../llm/client.ts';
 import {
   BOOLEAN_SYSTEM_PROMPT,
   createFromPrompt,
@@ -12,7 +12,7 @@ import {
   createSemanticallyEqualsPrompt,
   createCompareStrengthPrompt,
   createExtractConditionsPrompt,
-} from './boolean.prompts.ts';
+} from './prompts.ts';
 
 /** Options for parsing natural language to boolean */
 export interface FromOptions {

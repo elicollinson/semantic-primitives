@@ -144,11 +144,15 @@ interface SemanticBoolean {
 
 ### File Structure
 
-- `src/primitives/boolean.ts` - Main SemanticBoolean class implementation
-- `src/primitives/boolean.prompts.ts` - LLM prompt templates for boolean operations
-- `src/primitives/index.ts` - Module exports
-- `src/primitives/__tests__/boolean.test.ts` - Unit tests (68 tests)
-- `src/primitives/__tests__/mocks.ts` - Mock utilities for testing
+```
+src/primitives/boolean/
+├── index.ts                    # Module exports
+├── boolean.ts                  # Main SemanticBoolean class
+├── prompts.ts                  # LLM prompt templates
+└── __tests__/
+    ├── boolean.test.ts         # Unit tests (68 tests)
+    └── mocks.ts                # Mock utilities for testing
+```
 
 ### Key Design Decisions
 

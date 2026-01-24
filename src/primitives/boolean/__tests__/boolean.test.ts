@@ -375,25 +375,25 @@ describe('SemanticBoolean', () => {
 
 describe('SemanticBoolean prompts', () => {
   test('createFromPrompt includes locale', async () => {
-    const { createFromPrompt } = await import('../boolean.prompts.ts');
+    const { createFromPrompt } = await import('../prompts.ts');
     const prompt = createFromPrompt('oui', 'fr');
     expect(prompt).toContain('Locale: fr');
   });
 
   test('createFromPrompt includes context', async () => {
-    const { createFromPrompt } = await import('../boolean.prompts.ts');
+    const { createFromPrompt } = await import('../prompts.ts');
     const prompt = createFromPrompt('sure', undefined, 'business meeting');
     expect(prompt).toContain('Context: business meeting');
   });
 
   test('createFromPrompt includes input expression', async () => {
-    const { createFromPrompt } = await import('../boolean.prompts.ts');
+    const { createFromPrompt } = await import('../prompts.ts');
     const prompt = createFromPrompt('absolutely');
     expect(prompt).toContain('Expression: "absolutely"');
   });
 
   test('createFromImplicationPrompt includes statement', async () => {
-    const { createFromImplicationPrompt } = await import('../boolean.prompts.ts');
+    const { createFromImplicationPrompt } = await import('../prompts.ts');
     const prompt = createFromImplicationPrompt('The test passed');
     expect(prompt).toContain('Statement: "The test passed"');
   });
