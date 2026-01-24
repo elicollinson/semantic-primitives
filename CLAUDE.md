@@ -9,13 +9,18 @@ src/
 ├── index.ts              # Main entry point, re-exports all public APIs
 ├── primitives/           # Semantic wrappers for TypeScript primitives
 │   ├── index.ts          # Re-exports all primitives
-│   └── <type>.ts         # One file per primitive (e.g., string.ts, number.ts)
+│   └── <type>/           # One folder per primitive
+│       ├── index.ts      # Re-exports public API
+│       ├── <type>.ts     # Main class implementation
+│       ├── prompts.ts    # LLM prompt templates
+│       └── __tests__/    # Tests and mocks
 ├── types/                # Semantic wrappers for reference/structural types
 │   ├── index.ts          # Re-exports all types
-│   └── <type>.ts         # One file per type (e.g., array.ts, map.ts)
+│   └── <type>/           # One folder per type (same structure as primitives)
 ├── llm/                  # LLM client and provider abstractions
-├── shared/               # Shared utilities, base classes, and interfaces
-└── __tests__/            # Test files mirror src structure
+└── shared/               # Shared utilities, base classes, and interfaces
+    ├── index.ts          # Re-exports shared APIs
+    └── types.ts          # Shared type definitions
 ```
 
 ### Naming Conventions
@@ -36,6 +41,13 @@ src/
 - Prefer classes for semantic wrappers to enable method chaining and inheritance
 - Use TypeScript generics where the underlying type is generic (e.g., `SemanticArray<T>`)
 - Each semantic wrapper should extend or wrap its base type, not replace it
+
+### Shared Types
+
+- When multiple modules use the same type structure, define it once in `src/shared/types.ts`
+- Import shared types from `../../shared/types.ts` and re-export from the module's index
+- Examples of shared types: `SemanticEqualsResult`, common result interfaces
+- This ensures type compatibility across modules and reduces duplication
 
 ---
 
