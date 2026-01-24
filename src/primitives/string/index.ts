@@ -5,8 +5,8 @@
  * including meaning-aware comparisons, classification, and analysis.
  */
 
-import type { LLMClient } from '../llm/client.ts';
-import { getClient } from '../llm/client.ts';
+import type { LLMClient } from '../../llm/client.ts';
+import { getClient } from '../../llm/client.ts';
 import {
   semanticallyEqualsPrompt,
   classifyPrompt,

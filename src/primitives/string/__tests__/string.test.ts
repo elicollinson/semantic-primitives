@@ -15,9 +15,9 @@ import {
   type DetectLanguageResult,
   type ContainsSensitiveResult,
   type Correction,
-} from '../string.ts';
-import type { LLMClient } from '../../llm/client.ts';
-import type { LLMResponse, CompletionOptions } from '../../llm/types.ts';
+} from '../index.ts';
+import type { LLMClient } from '../../../llm/client.ts';
+import type { LLMResponse, CompletionOptions } from '../../../llm/types.ts';
 
 /** Mock function type for tracking calls */
 type MockCompleteFn = ReturnType<typeof mock<(options: CompletionOptions) => Promise<LLMResponse>>>;

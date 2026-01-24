@@ -12,4 +12,4 @@ export {
   type DetectLanguageResult,
   type ContainsSensitiveResult,
   type Correction,
-} from './string.ts';
+} from './string/index.ts';
