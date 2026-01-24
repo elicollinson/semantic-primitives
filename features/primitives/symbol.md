@@ -155,3 +155,63 @@ import {
   AppropriateResult
 } from '../../shared/types.ts';
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+
+```
+src/primitives/symbol/
+├── index.ts              # Re-exports public API
+├── symbol.ts             # Main class implementation
+├── symbol.prompts.ts     # LLM prompt templates
+└── __tests__/
+    └── symbol.test.ts    # Unit tests with mocked LLM
+```
+
+### Implementation Details
+
+1. **Factory Methods**: The class uses a private constructor with three static factory methods:
+   - `create(description)` - Creates a new unique symbol with the given description
+   - `for(key)` - Creates or retrieves a global symbol (uses `Symbol.for()` internally)
+   - `from(symbol)` - Wraps an existing native symbol
+
+2. **Global Symbol Registry**: `SemanticSymbol.for()` maintains a separate registry (`globalSymbolRegistry`) to cache SemanticSymbol instances, ensuring the same key always returns the same SemanticSymbol instance.
+
+3. **Classification Categories**: The `classify()` method recognizes the following categories:
+   - `event` - Event handlers, listeners, callbacks
+   - `configuration` - Config keys, settings, options
+   - `lifecycle` - Initialization, cleanup, state transitions
+   - `identifier` - IDs, keys, references
+   - `action` - Methods, commands, operations
+   - `data` - Data structures, storage
+   - `constant` - Unchanging values
+   - `internal` - Private/internal markers
+   - `metadata` - Descriptive information
+   - `unknown` - Cannot be determined
+
+4. **Type Differences from Spec**:
+   - `classify()` returns `SymbolClassifyResult` (without confidence) rather than `ClassifyResult` to match the spec
+   - `suggestBetterName()` uses `Suggestion` type where `suggestion` is `string | undefined` instead of `string | null`
+
+5. **Edge Cases**: All LLM-powered methods handle symbols without descriptions gracefully, returning appropriate fallback responses.
+
+### Test Coverage
+
+44 tests covering:
+- Factory method behavior (create, for, from)
+- Semantic equality comparison (including naming convention differences)
+- Name suggestion for abbreviations and good names
+- Category classification for various symbol types
+- Validation with custom conventions
+- Purpose description
+- Appropriateness assessment
+- Edge cases (symbols without descriptions)
+- Serialization (toString, toJSON)
+
+### Interfaces Implemented
+
+- `Semantic<symbol>` - Base semantic wrapper with `valueOf()`
+- `Comparable<SemanticSymbol | symbol>` - Semantic equality comparison
