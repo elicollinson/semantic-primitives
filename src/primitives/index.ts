@@ -28,3 +28,13 @@ export {
   type ContainsSensitiveResult,
   type Correction,
 } from './string/index.ts';
+
+// SemanticSymbol
+export {
+  SemanticSymbol,
+  type SuggestBetterNameResult,
+  type SymbolClassifyResult,
+  type SemanticEqualsResultWithReason,
+  type ValidateResultWithWarnings,
+  type AppropriateResult,
+} from './symbol/index.ts';

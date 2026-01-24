@@ -155,3 +155,44 @@ import {
   AppropriateResult
 } from '../../shared/types.ts';
 ```
+
+---
+
+## Implementation Notes
+
+### Files Created
+
+- `src/primitives/symbol/symbol.ts` - Main SemanticSymbol class implementation
+- `src/primitives/symbol/prompts.ts` - LLM prompt templates for semantic operations
+- `src/primitives/symbol/index.ts` - Module exports
+- `src/primitives/symbol/__tests__/symbol.test.ts` - Comprehensive unit tests (50 tests)
+- `src/primitives/symbol/__tests__/mocks.ts` - Mock utilities for testing without LLM calls
+
+### Key Implementation Details
+
+1. **Static Factory Methods**: `create()` and `for()` create new SemanticSymbol instances. The `for()` method maintains a global registry similar to native `Symbol.for()`.
+
+2. **Async LLM Operations**: All semantic operations (`semanticallyEquals`, `suggestBetterName`, `classify`, `validate`, `describePurpose`, `isAppropriateFor`) are async since they require LLM calls.
+
+3. **fromSymbol()**: Added an additional static method `fromSymbol()` to wrap existing native Symbol values.
+
+4. **Graceful Handling**: All methods gracefully handle symbols without descriptions, returning appropriate fallback values.
+
+5. **Interface Implementation**:
+   - Implements `Semantic<symbol>` for `valueOf()`
+   - Implements `Comparable<SemanticSymbol, SemanticEqualsResultWithReason>` for `semanticallyEquals()`
+   - Implements `Validatable<ValidateResultWithWarnings>` for `validate()`
+   - Note: `Classifiable` and `PurposeValidatable` interfaces are not implemented because:
+     - `Classifiable` requires `confidence` in the result, but spec says "without confidence"
+     - `PurposeValidatable` expects sync returns, but our LLM calls require async
+
+6. **SymbolClassifyResult**: Custom type for classify result without `confidence` field to match spec requirements.
+
+7. **Global Registry**: Uses a private `Map<string, SemanticSymbol>` for `SemanticSymbol.for()` to ensure same key returns same instance.
+
+### Testing
+
+- 50 unit tests covering all methods and edge cases
+- All tests use mock LLM clients to avoid actual API calls
+- Tests verify both happy paths and edge cases (symbols without descriptions, same instances, etc.)
+- Prompt generation tests verify correct prompt construction
