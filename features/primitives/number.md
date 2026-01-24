@@ -2,9 +2,9 @@
 
 ## Overview
 
-The `SemanticNumber` type extends the native JavaScript number with LLM-powered semantic understanding. It can interpret numbers in context, understand approximate values, detect anomalies, and validate numeric reasonableness.
+The `SemanticNumber` type extends the native JavaScript number with LLM-powered semantic understanding. It can interpret numbers in context, understand approximate values, and validate numeric reasonableness.
 
-**Core Principle**: Numbers represent quantities with meaning - semantic operations should understand context, units, and reasonableness.
+**Core Principle**: Numbers represent quantities with meaning - semantic operations should understand context, units, and reasonableness through LLM intelligence.
 
 ---
 
@@ -92,37 +92,6 @@ interface SemanticNumber {
   convert(toUnit: string, fromUnit?: string): SemanticNumber;
 
   /**
-   * Format the number in a human-readable way based on context.
-   *
-   * @param options - Formatting options
-   * @returns Formatted string
-   *
-   * @example
-   * SemanticNumber.from(1234567).format({ style: "compact" })
-   * // "1.2M"
-   *
-   * SemanticNumber.from(0.156).format({ style: "percent" })
-   * // "15.6%"
-   */
-  format(options?: {
-    style?: "compact" | "full" | "percent" | "currency";
-    locale?: string;
-    currency?: string;
-  }): string;
-
-  /**
-   * Detect if this number is an outlier compared to a dataset.
-   *
-   * @param dataset - Array of numbers to compare against
-   * @returns Outlier detection result
-   *
-   * @example
-   * SemanticNumber.from(1000).isOutlier([10, 12, 11, 13, 9])
-   * // { isOutlier: true, severity: "extreme", zscore: 8.5 }
-   */
-  isOutlier(dataset: number[]): { isOutlier: boolean; severity?: string; zscore?: number };
-
-  /**
    * Get a human-friendly description of the number's magnitude.
    *
    * @param context - Optional context for more relevant description
@@ -138,18 +107,6 @@ interface SemanticNumber {
   describe(context?: string): string;
 
   /**
-   * Check if the number matches a common pattern or category.
-   *
-   * @param pattern - Pattern to check (e.g., "even", "prime", "power-of-two")
-   * @returns Whether the number matches the pattern
-   *
-   * @example
-   * SemanticNumber.from(16).matches("power-of-two") // true
-   * SemanticNumber.from(7).matches("prime") // true
-   */
-  matches(pattern: string): boolean;
-
-  /**
    * Get the raw numeric value.
    *
    * @returns The underlying number
@@ -157,3 +114,61 @@ interface SemanticNumber {
   valueOf(): number;
 }
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+
+```
+src/primitives/number/
+├── index.ts              # Module exports
+├── number.ts             # SemanticNumber class implementation
+├── number.prompts.ts     # LLM prompt templates
+└── __tests__/
+    └── number.test.ts    # Comprehensive tests with mocked LLM
+```
+
+- **Export**: Re-exported from `src/primitives/index.ts` and `src/index.ts`
+
+### Design Decisions
+
+1. **LLM-Only Operations**: All semantic operations use LLM for maximum intelligence and context understanding. This keeps the implementation focused on leveraging AI capabilities rather than reimplementing standard utilities.
+
+2. **Dependency Injection for LLM Client**: The `SemanticNumber` class accepts an optional `LLMClientInterface` for dependency injection, enabling easy mocking in tests without actual LLM calls.
+
+3. **Prompt Organization**: All LLM prompts are centralized in `number.prompts.ts` with:
+   - System prompts for each operation type
+   - User prompt template functions
+   - Structured JSON response formats
+
+4. **Folder-Based Organization**: Each primitive type has its own folder containing implementation, prompts, and tests. This mirrors the structure used by other primitives like SemanticString.
+
+### LLM Operations
+
+All methods use LLM calls for semantic understanding:
+- `SemanticNumber.from()` - Parse natural language to numbers
+- `semanticallyEquals()` - Context-aware numeric comparison
+- `isReasonable()` - Validate numbers against domain knowledge
+- `inferUnit()` - Infer units from context
+- `convert()` - Semantic unit conversion
+- `describe()` - Human-friendly magnitude descriptions
+
+### Test Coverage
+
+61 tests covering:
+- Constructor and basic operations
+- LLM-based parsing with mocked responses
+- Semantic equality with various tolerances
+- Reasonableness validation
+- Unit inference and conversion
+- Human-friendly descriptions
+- Edge cases (negative numbers, decimals, zero)
+
+### Future Considerations
+
+1. **Caching**: Consider adding response caching for repeated LLM calls with the same parameters
+2. **Streaming**: For large descriptions, consider streaming responses
+3. **Batch Operations**: Add batch methods for processing multiple numbers efficiently
+4. **Context Chaining**: Allow context to be passed between operations for more coherent results

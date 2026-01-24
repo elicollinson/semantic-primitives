@@ -6,6 +6,15 @@
 // Shared types
 export { type SemanticEqualsResult } from '../shared/types.ts';
 
+// SemanticNumber
+export {
+  SemanticNumber,
+  type ReasonableResult,
+  type InferUnitResult,
+  type SemanticEqualsOptions,
+  type LLMClientInterface,
+} from './number/index.ts';
+
 // SemanticBoolean
 export { SemanticBoolean, type FromOptions, type BooleanCategory } from './boolean/index.ts';
 
