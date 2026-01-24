@@ -59,3 +59,14 @@ export {
   type MatchPattern,
   type InferDomainResult,
 } from './bigint/index.ts';
+
+// SemanticUndefined
+export {
+  SemanticUndefined,
+  type UndefinedType,
+  type UndefinedClassifyResult,
+  type SuggestInitializationResult,
+  type TypeHint,
+  type AcceptableResult,
+  type CompareToNullResult,
+} from './undefined/index.ts';
