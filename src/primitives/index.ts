@@ -1,6 +1,30 @@
 /**
  * Semantic Primitives
- * LLM-enhanced wrappers for JavaScript primitive types
+ * LLM-enhanced primitive types with semantic understanding
  */
 
-export * from './number/index.ts';
+// Shared types
+export { type SemanticEqualsResult } from '../shared/types.ts';
+
+// SemanticNumber
+export {
+  SemanticNumber,
+  type ReasonableResult,
+  type InferUnitResult,
+  type SemanticEqualsOptions,
+  type LLMClientInterface,
+} from './number/index.ts';
+
+// SemanticBoolean
+export { SemanticBoolean, type FromOptions, type BooleanCategory } from './boolean/index.ts';
+
+// SemanticString
+export {
+  SemanticString,
+  type ClassifyResult,
+  type ValidateResult,
+  type DetectIntentResult,
+  type DetectLanguageResult,
+  type ContainsSensitiveResult,
+  type Correction,
+} from './string/index.ts';

@@ -11,6 +11,7 @@
 
 import { chat } from '../../llm/index.ts';
 import type { LLMConfig, Message } from '../../llm/types.ts';
+import type { SemanticEqualsResult } from '../../shared/types.ts';
 import {
   PARSE_NUMBER_SYSTEM,
   parseNumberPrompt,
@@ -26,12 +27,8 @@ import {
   describeNumberPrompt,
 } from './number.prompts.ts';
 
-/** Result of semantic equality comparison */
-export interface SemanticEqualsResult {
-  equivalent: boolean;
-  confidence: number;
-  reasoning?: string;
-}
+// Re-export shared type
+export type { SemanticEqualsResult } from '../../shared/types.ts';
 
 /** Result of reasonableness validation */
 export interface ReasonableResult {
@@ -43,7 +40,6 @@ export interface ReasonableResult {
 export interface InferUnitResult {
   unit: string;
   confidence: number;
-  reasoning?: string;
 }
 
 /** Options for semantic equality comparison */

@@ -140,7 +140,6 @@ describe('SemanticNumber', () => {
         'number comparison': JSON.stringify({
           equivalent: true,
           confidence: 0.95,
-          reasoning: '100 and 99 are approximately equal',
         }),
       });
 
@@ -155,7 +154,6 @@ describe('SemanticNumber', () => {
         'number comparison': JSON.stringify({
           equivalent: true,
           confidence: 1.0,
-          reasoning: 'Exact numeric match',
         }),
       });
 
@@ -170,7 +168,6 @@ describe('SemanticNumber', () => {
         'number comparison': JSON.stringify({
           equivalent: false,
           confidence: 1.0,
-          reasoning: 'Values 100 and 101 are not exactly equal',
         }),
       });
 
@@ -184,7 +181,6 @@ describe('SemanticNumber', () => {
         'number comparison': JSON.stringify({
           equivalent: true,
           confidence: 1.0,
-          reasoning: 'Difference of 1 is within tolerance of 2',
         }),
       });
 
@@ -198,7 +194,6 @@ describe('SemanticNumber', () => {
         'number comparison': JSON.stringify({
           equivalent: true,
           confidence: 1.0,
-          reasoning: 'Exact numeric match',
         }),
       });
 
@@ -257,7 +252,6 @@ describe('SemanticNumber', () => {
         'unit inference': JSON.stringify({
           unit: 'fahrenheit',
           confidence: 0.85,
-          reasoning: '72 is typical room temperature in Fahrenheit',
         }),
       });
 
@@ -272,7 +266,6 @@ describe('SemanticNumber', () => {
         'unit inference': JSON.stringify({
           unit: 'km/h',
           confidence: 0.92,
-          reasoning: 'European speed limits are measured in km/h',
         }),
       });
 

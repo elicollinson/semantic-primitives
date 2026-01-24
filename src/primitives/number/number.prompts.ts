@@ -66,7 +66,7 @@ Number 2: ${value2}
 Tolerance: ${toleranceDesc}
 
 Respond with JSON in this exact format:
-{"equivalent": <boolean>, "confidence": <0-1>, "reasoning": "<brief explanation>"}`;
+{"equivalent": <boolean>, "confidence": <0-1>}`;
 }
 
 /**
@@ -118,7 +118,7 @@ Number: ${value}
 Context: ${context}
 
 Respond with JSON in this exact format:
-{"unit": "<inferred unit>", "confidence": <0-1>, "reasoning": "<brief explanation>"}`;
+{"unit": "<inferred unit>", "confidence": <0-1>}`;
 }
 
 /**
