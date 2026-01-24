@@ -39,3 +39,17 @@ export {
   type RecoveryStrategy,
   type ErrorSeverityLevel,
 } from './error/index.ts';
+
+// SemanticObject
+export {
+  SemanticObject,
+  type ObjectValidateResult,
+  type SemanticMergeOptions,
+  type KeyConvention,
+  type SemanticEqualsResultWithMappings,
+  type SemanticGetResult,
+  type InferSchemaResult,
+  type MissingSuggestion,
+  type InferTypeResult,
+  type SensitiveResult,
+} from './object/index.ts';
