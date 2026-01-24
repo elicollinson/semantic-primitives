@@ -160,3 +160,30 @@ interface SemanticError extends Error {
   getSeverity(): "critical" | "error" | "warning" | "info";
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; reason: string; confidence: number }` | `SemanticEqualsResultWithReason` |
+| `classify()` | `{ category: string; subcategory?: string; ... }` | `ClassifyResult` (extended) |
+| `suggestFixes()` | `Array<{ fix: string; confidence: number; code?: string }>` | `SuggestedFix[]` |
+| `inferRootCause()` | `{ cause: string; confidence: number }` | `RootCauseResult` |
+| `recoveryStrategy()` | `{ strategy: "retry" \| "fallback" \| ...; ... }` | `RecoveryStrategy` |
+| `getSeverity()` | `"critical" \| "error" \| "warning" \| "info"` | `ErrorSeverityLevel` |
+
+Import shared types:
+```typescript
+import {
+  SemanticEqualsResultWithReason,
+  ClassifyResult,
+  SuggestedFix,
+  RootCauseResult,
+  RecoveryStrategy,
+  ErrorSeverityLevel
+} from '../../shared/types.ts';
+```

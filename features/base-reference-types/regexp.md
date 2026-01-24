@@ -164,3 +164,30 @@ interface SemanticRegExp extends RegExp {
   simplify(): { regex: SemanticRegExp; explanation: string } | null;
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; confidence: number }` | `SemanticEqualsResult` |
+| `suggestImprovements()` | `Array<{ suggestion: string; reason: string; improved?: string }>` | `ImprovementSuggestion[]` |
+| `generateTestCases()` | `{ shouldMatch: string[]; shouldNotMatch: string[] }` | `RegExpTestCases` |
+| `validate()` | `{ valid: boolean; warnings: string[]; issues: string[] }` | `ValidateResultWithWarnings` (extended) |
+| `suggestRelated()` | `Array<{ pattern: string; reason: string; regex?: string }>` | `RelatedSuggestion[]` (extended) |
+| `inferDataType()` | `{ type: string; confidence: number }` | `InferTypeResult` |
+
+Import shared types:
+```typescript
+import {
+  SemanticEqualsResult,
+  ImprovementSuggestion,
+  RegExpTestCases,
+  ValidateResultWithWarnings,
+  RelatedSuggestion,
+  InferTypeResult
+} from '../../shared/types.ts';
+```

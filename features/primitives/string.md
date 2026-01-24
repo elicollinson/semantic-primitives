@@ -158,6 +158,35 @@ interface SemanticString {
 
 ---
 
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; confidence: number }` | `SemanticEqualsResult` |
+| `classify()` | `{ category: string; confidence: number }` | `ClassifyResult` |
+| `validate()` | `{ valid: boolean; issues: string[] }` | `ValidateResult` |
+| `detectIntent()` | `{ intent: string; subtype?: string; topic?: string; confidence: number }` | `DetectIntentResult` |
+| `detectLanguage()` | `{ language: string; confidence: number }` | `DetectLanguageResult` |
+| `containsSensitive()` | `{ hasSensitive: boolean; types: string[] }` | `SensitiveResult` |
+| `suggestCorrections()` | `Array<{ original: string; suggestion: string; reason?: string }>` | `Correction[]` |
+
+Import shared types:
+```typescript
+import {
+  SemanticEqualsResult,
+  ClassifyResult,
+  ValidateResult,
+  DetectIntentResult,
+  DetectLanguageResult,
+  SensitiveResult,
+  Correction
+} from '../../shared/types.ts';
+```
+
+---
+
 ## Implementation Notes
 
 ### File Structure

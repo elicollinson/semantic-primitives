@@ -183,3 +183,30 @@ interface SemanticObject<T extends object = object> {
   valueOf(): T;
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticGet()` | `{ value: unknown; matchedKey: string \| undefined; confidence: number }` | `SemanticGetResult` |
+| `semanticallyEquals()` | `{ equivalent: boolean; mappings?: Record<string, string>; confidence: number }` | `SemanticEqualsResultWithMappings` |
+| `inferSchema()` | `{ type: string; fields: Record<...>; confidence: number }` | `InferSchemaResult` |
+| `suggestMissingFields()` | `Array<{ field: string; reason: string }>` | `MissingSuggestion[]` |
+| `inferType()` | `{ type: string; confidence: number }` | `InferTypeResult` |
+| `isSensitive()` | `{ sensitive: boolean; type?: string; recommendation?: string }` | `SensitiveResult` |
+
+Import shared types:
+```typescript
+import {
+  SemanticGetResult,
+  SemanticEqualsResultWithMappings,
+  InferSchemaResult,
+  MissingSuggestion,
+  InferTypeResult,
+  SensitiveResult
+} from '../../shared/types.ts';
+```

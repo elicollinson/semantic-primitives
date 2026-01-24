@@ -131,3 +131,22 @@ interface SemanticUndefined {
   isUndefined(): true;
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; confidence: number }` | `SemanticEqualsResult` |
+| `inferReason()` | `{ reason: string; type: string }` | `InferReasonResult` |
+
+Import shared types:
+```typescript
+import {
+  SemanticEqualsResult,
+  InferReasonResult
+} from '../../shared/types.ts';
+```

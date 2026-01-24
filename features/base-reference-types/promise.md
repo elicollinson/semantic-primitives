@@ -172,3 +172,18 @@ interface SemanticPromise<T> extends Promise<T> {
   inferOperation(): { operation: string; resource?: string; action?: string };
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `Promise<{ equivalent: boolean; confidence: number }>` | `Promise<SemanticEqualsResult>` |
+
+Import shared types:
+```typescript
+import { SemanticEqualsResult } from '../../shared/types.ts';
+```

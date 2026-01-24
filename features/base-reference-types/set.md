@@ -159,3 +159,24 @@ interface SemanticSet<T> extends Set<T> {
   inferTheme(): { theme: string; confidence: number };
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; mappings?: Array<[T, T]>; confidence: number }` | `SemanticEqualsResult` (extended) |
+| `suggestRelated()` | `Array<{ value: string; reason: string }>` | `RelatedSuggestion[]` |
+| `inferTheme()` | `{ theme: string; confidence: number }` | `ConfidenceResult` (extended) |
+
+Import shared types:
+```typescript
+import {
+  SemanticEqualsResult,
+  RelatedSuggestion,
+  ConfidenceResult
+} from '../../shared/types.ts';
+```

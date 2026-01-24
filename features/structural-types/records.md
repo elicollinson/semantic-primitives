@@ -172,3 +172,26 @@ interface SemanticRecord<K extends string | number | symbol, V> {
   values(): V[];
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; keyMappings?: Record<string, string>; confidence: number }` | `SemanticEqualsResultWithMappings` |
+| `semanticGet()` | `{ value: V \| undefined; matchedKey: K \| undefined; confidence: number }` | `SemanticGetResult<K, V>` |
+| `suggestMissingKeys()` | `Array<{ key: string; reason: string }>` | `MissingSuggestion[]` |
+| `inferPurpose()` | `{ purpose: string; keyType: string; valueType: string; confidence: number }` | `InferPurposeResult` (extended) |
+
+Import shared types:
+```typescript
+import {
+  SemanticEqualsResultWithMappings,
+  SemanticGetResult,
+  MissingSuggestion,
+  InferPurposeResult
+} from '../../shared/types.ts';
+```

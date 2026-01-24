@@ -127,3 +127,24 @@ interface SemanticBigInt {
   valueOf(): bigint;
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; confidence: number }` | `SemanticEqualsResult` |
+| `isReasonable()` | `{ reasonable: boolean; explanation: string }` | `ReasonableResult` |
+| `inferDomain()` | `{ domain: string; confidence: number }` | `InferDomainResult` |
+
+Import shared types:
+```typescript
+import {
+  SemanticEqualsResult,
+  ReasonableResult,
+  InferDomainResult
+} from '../../shared/types.ts';
+```

@@ -159,3 +159,22 @@ interface SemanticTuple<T extends unknown[]> {
   length: number;
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; reason?: string; confidence: number }` | `SemanticEqualsResultWithReason` |
+| `detectPattern()` | `{ pattern: string; confidence: number; suggestedType?: string }` | `DetectPatternResult` |
+
+Import shared types:
+```typescript
+import {
+  SemanticEqualsResultWithReason,
+  DetectPatternResult
+} from '../../shared/types.ts';
+```

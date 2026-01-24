@@ -158,3 +158,31 @@ interface SemanticMap<K, V> extends Map<K, V> {
   inferPurpose(): { purpose: string; subcategory?: string; confidence: number };
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticGet()` | `{ value: V \| undefined; matchedKey: K \| undefined; confidence: number }` | `SemanticGetResult<K, V>` |
+| `semanticallyEquals()` | `{ equivalent: boolean; keyMappings?: Array<[K, K]>; confidence: number }` | `SemanticEqualsResult` (extended) |
+| `findKeys()` | `Array<{ key: K; relevance: number }>` | `SearchResult<K>[]` (adapted) |
+| `findValues()` | `Array<{ key: K; value: V; relevance: number }>` | `SearchResult` (extended) |
+| `validate()` | `{ valid: boolean; issues: string[] }` | `ValidateResult` |
+| `suggestMissingKeys()` | `Array<{ key: string; reason: string }>` | `MissingSuggestion[]` |
+| `inferPurpose()` | `{ purpose: string; subcategory?: string; confidence: number }` | `InferPurposeResult` |
+
+Import shared types:
+```typescript
+import {
+  SemanticGetResult,
+  SemanticEqualsResult,
+  SearchResult,
+  ValidateResult,
+  MissingSuggestion,
+  InferPurposeResult
+} from '../../shared/types.ts';
+```

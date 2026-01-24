@@ -160,3 +160,23 @@ interface SemanticUnknown {
   isEmpty(): boolean;
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `inferType()` | `{ type: string; shape?: string; confidence: number }` | `InferTypeResult` (extended) |
+| `suggestTypes()` | `Array<{ type: string; confidence: number; reason?: string }>` | `ConfidenceResult[]` (extended) |
+| `matches()` | `{ matches: boolean; confidence: number }` | `ConfidenceResult` (extended) |
+
+Import shared types:
+```typescript
+import {
+  InferTypeResult,
+  ConfidenceResult
+} from '../../shared/types.ts';
+```

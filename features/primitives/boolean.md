@@ -140,6 +140,21 @@ interface SemanticBoolean {
 
 ---
 
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; confidence: number }` | `SemanticEqualsResult` |
+
+Import shared types:
+```typescript
+import { SemanticEqualsResult } from '../../shared/types.ts';
+```
+
+---
+
 ## Implementation Notes
 
 ### File Structure

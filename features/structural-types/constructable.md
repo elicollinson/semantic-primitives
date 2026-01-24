@@ -174,3 +174,26 @@ interface SemanticConstructable<T extends new (...args: any[]) => any> {
   valueOf(): T;
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; instanceDifferences: string[]; confidence: number }` | `SemanticEqualsResult` (extended) |
+| `validateArgs()` | `{ valid: boolean; issues: string[] }` | `ValidateResult` |
+| `detectPatterns()` | `{ patterns: string[]; confidence: number }` | `DetectPatternResult` |
+| `suggestImprovements()` | `Array<{ suggestion: string; reason: string }>` | `ImprovementSuggestion[]` |
+
+Import shared types:
+```typescript
+import {
+  SemanticEqualsResult,
+  ValidateResult,
+  DetectPatternResult,
+  ImprovementSuggestion
+} from '../../shared/types.ts';
+```

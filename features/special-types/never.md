@@ -167,3 +167,9 @@ interface SemanticNever {
   }>;
 }
 ```
+
+---
+
+## Shared Types
+
+The `SemanticNever` interface uses unique result types specific to exhaustiveness checking and dead code analysis. These are not yet available as shared types since they are specific to the `never` type semantics.

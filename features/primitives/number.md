@@ -117,6 +117,27 @@ interface SemanticNumber {
 
 ---
 
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; confidence: number }` | `SemanticEqualsResult` |
+| `isReasonable()` | `{ reasonable: boolean; explanation: string }` | `ReasonableResult` |
+| `inferUnit()` | `{ unit: string; confidence: number }` | `InferUnitResult` |
+
+Import shared types:
+```typescript
+import {
+  SemanticEqualsResult,
+  ReasonableResult,
+  InferUnitResult
+} from '../../shared/types.ts';
+```
+
+---
+
 ## Implementation Notes
 
 ### File Structure
