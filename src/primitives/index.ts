@@ -3,4 +3,4 @@
  * LLM-enhanced wrappers for JavaScript primitive types
  */
 
-export * from './number.ts';
+export * from './number/index.ts';
