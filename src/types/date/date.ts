@@ -196,7 +196,10 @@ export class SemanticDate
     options?: Record<string, unknown>
   ): Promise<SemanticEqualsResult> {
     const otherValue = other instanceof SemanticDate ? other.valueOf() : other;
-    const precision = (options?.precision as DatePrecision) || 'day';
+    const precision: DatePrecision =
+      options && 'precision' in options && options.precision
+        ? (options.precision as DatePrecision)
+        : 'day';
 
     const messages: Message[] = [
       {
