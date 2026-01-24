@@ -186,3 +186,81 @@ import {
   InferPurposeResult
 } from '../../shared/types.ts';
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+
+The implementation follows the library's standard structure:
+
+```
+src/types/map/
+├── index.ts          # Re-exports public API
+├── map.ts            # Main SemanticMap class implementation
+├── prompts.ts        # LLM prompt templates
+└── __tests__/
+    ├── map.test.ts   # Unit tests (70 tests)
+    └── mocks.ts      # Mock LLM responses for testing
+```
+
+### Design Decisions
+
+1. **Immutability**: All mutation methods (`set`, `delete`, `clear`) return new `SemanticMap` instances instead of modifying the original, following functional programming patterns.
+
+2. **LLM Client Injection**: The `LLMClient` is injected via constructor (optional) and defaults to `getClient()` from the LLM module. This enables easy mocking in tests.
+
+3. **Async Semantic Operations**: All LLM-powered methods are async (e.g., `semanticGet`, `semanticHas`, `findKeys`) while standard Map operations remain synchronous.
+
+4. **Key Conversion**: Internal operations convert keys to strings for LLM processing since LLMs work with text. This works well for common Map key types (string, number).
+
+5. **Empty Map Handling**: Semantic methods short-circuit on empty maps to avoid unnecessary LLM calls, returning sensible defaults.
+
+### Exported Types
+
+- `SemanticMap<K, V>` - The main class
+- `SemanticMergeOptions` - Options for `semanticMerge()`
+- `MapValidationRules` - Rules object for `validate()`
+- `FindKeyResult<K>` - Result type for `findKeys()`
+- `FindValueResult<K, V>` - Result type for `findValues()`
+- `MapSemanticEqualsResult` - Result type for `semanticallyEquals()`
+
+### Shared Types Used
+
+- `SemanticGetResult<K, V>` - For `semanticGet()`
+- `ValidateResult` - For `validate()`
+- `MissingSuggestion` - For `suggestMissingKeys()`
+- `InferPurposeResult` - For `inferPurpose()`
+
+### Testing
+
+All semantic operations are unit tested using mock LLM clients that return predefined responses. This ensures:
+- Tests run quickly without actual LLM API calls
+- Deterministic test results
+- Coverage of all code paths including edge cases (empty maps, no matches, etc.)
+
+### Usage Example
+
+```typescript
+import { SemanticMap } from 'semantic-primitives';
+
+// Create a configuration map
+const config = SemanticMap.from(new Map([
+  ['DB_HOST', 'localhost'],
+  ['DB_PORT', '5432'],
+  ['API_KEY', 'secret-key'],
+]));
+
+// Semantic key lookup
+const result = await config.semanticGet('database connection host');
+// { value: 'localhost', matchedKey: 'DB_HOST', confidence: 0.95 }
+
+// Find related keys
+const securityKeys = await config.findKeys('security related settings');
+// [{ key: 'API_KEY', relevance: 0.92 }]
+
+// Infer purpose
+const purpose = await config.inferPurpose();
+// { purpose: 'configuration', subcategory: 'database-settings', confidence: 0.88 }
+```
