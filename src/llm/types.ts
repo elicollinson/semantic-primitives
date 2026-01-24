@@ -101,7 +101,7 @@ export interface LLMEnvironment {
 /** Get environment configuration */
 export function getEnvConfig(): LLMEnvironment {
   return {
-    provider: (process.env['LLM_PROVIDER'] as LLMProvider) || 'openai',
+    provider: (process.env['LLM_PROVIDER'] as LLMProvider) || 'google',
     openai: {
       apiKey: process.env['OPENAI_API_KEY'],
       model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
@@ -112,7 +112,7 @@ export function getEnvConfig(): LLMEnvironment {
     },
     google: {
       apiKey: process.env['GOOGLE_API_KEY'],
-      model: process.env['GOOGLE_MODEL'] || 'gemini-1.5-flash',
+      model: process.env['GOOGLE_MODEL'] || 'gemini-2.0-flash-lite',
     },
     defaults: {
       maxTokens: parseInt(process.env['LLM_MAX_TOKENS'] || '1024', 10),

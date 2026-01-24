@@ -25,10 +25,10 @@ describe('getEnvConfig', () => {
   test('returns default values when no env vars are set', () => {
     const config = getEnvConfig();
 
-    expect(config.provider).toBe('openai');
+    expect(config.provider).toBe('google');
     expect(config.openai.model).toBe('gpt-4o-mini');
     expect(config.anthropic.model).toBe('claude-sonnet-4-20250514');
-    expect(config.google.model).toBe('gemini-1.5-flash');
+    expect(config.google.model).toBe('gemini-2.0-flash-lite');
     expect(config.defaults.maxTokens).toBe(1024);
     expect(config.defaults.temperature).toBe(0.7);
   });

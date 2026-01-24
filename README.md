@@ -39,7 +39,8 @@ Create a `.env` file based on `.env.example`:
 
 ```bash
 # LLM Provider Selection (openai, anthropic, or google)
-LLM_PROVIDER=openai
+# Default: google
+LLM_PROVIDER=google
 
 # OpenAI Configuration
 OPENAI_API_KEY=your-openai-api-key
@@ -49,9 +50,9 @@ OPENAI_MODEL=gpt-4o-mini
 ANTHROPIC_API_KEY=your-anthropic-api-key
 ANTHROPIC_MODEL=claude-sonnet-4-20250514
 
-# Google Configuration
+# Google Configuration (default provider)
 GOOGLE_API_KEY=your-google-api-key
-GOOGLE_MODEL=gemini-1.5-flash
+GOOGLE_MODEL=gemini-2.0-flash-lite
 
 # Optional: Default settings
 LLM_MAX_TOKENS=1024
@@ -188,7 +189,7 @@ import { OpenAIProvider, AnthropicProvider, GoogleProvider } from 'semantic-prim
 
 const openai = new OpenAIProvider('sk-...', 'gpt-4o');
 const anthropic = new AnthropicProvider('sk-ant-...', 'claude-opus-4-20250514');
-const google = new GoogleProvider('AIza...', 'gemini-1.5-pro');
+const google = new GoogleProvider('AIza...', 'gemini-2.0-flash-lite');
 ```
 
 ### Types
@@ -355,11 +356,11 @@ semantic-primitives/
 
 ## Supported Providers
 
-| Provider | Models | Status |
-|----------|--------|--------|
-| OpenAI | GPT-4o, GPT-4o-mini, GPT-4, etc. | Supported |
-| Anthropic | Claude Opus 4, Claude Sonnet 4, etc. | Supported |
-| Google | Gemini 1.5 Pro, Gemini 1.5 Flash, etc. | Supported |
+| Provider | Default Model | Other Models | Status |
+|----------|---------------|--------------|--------|
+| Google (default) | gemini-2.0-flash-lite | Gemini 2.0 Flash, Gemini 1.5 Pro, etc. | Supported |
+| OpenAI | gpt-4o-mini | GPT-4o, GPT-4, etc. | Supported |
+| Anthropic | claude-sonnet-4-20250514 | Claude Opus 4, etc. | Supported |
 
 ## License
 
