@@ -1,0 +1,139 @@
+# SemanticBoolean
+
+## Overview
+
+The `SemanticBoolean` type extends the native JavaScript boolean with LLM-powered semantic understanding. Unlike traditional booleans that only understand `true`/`false`, semantic booleans can interpret natural language, handle ambiguity, and bridge the gap between human communication and binary logic.
+
+**Core Principle**: Booleans are for evaluation - determining truth values from ambiguous human expressions.
+
+---
+
+## Interface
+
+```typescript
+interface SemanticBoolean {
+  /**
+   * Parse natural language into a boolean value.
+   * Understands affirmatives, negatives, and contextual expressions.
+   *
+   * @param input - Natural language text to interpret
+   * @param options - Optional locale and context settings
+   * @returns SemanticBoolean instance
+   *
+   * @example
+   * SemanticBoolean.from("yes") // true
+   * SemanticBoolean.from("absolutely") // true
+   * SemanticBoolean.from("nope") // false
+   * SemanticBoolean.from("hai", { locale: "ja" }) // true (Japanese yes)
+   */
+  static from(input: string, options?: { locale?: string; context?: string }): SemanticBoolean;
+
+  /**
+   * Infer boolean value from an implication or statement.
+   * Analyzes statements that imply success/failure, presence/absence.
+   *
+   * @param statement - A declarative statement to analyze
+   * @returns SemanticBoolean with inferred value
+   *
+   * @example
+   * SemanticBoolean.fromImplication("The test passed") // true
+   * SemanticBoolean.fromImplication("We encountered errors") // false
+   * SemanticBoolean.fromImplication("No issues found") // true
+   */
+  static fromImplication(statement: string): SemanticBoolean;
+
+  /**
+   * Check if two boolean expressions are semantically equivalent.
+   * Considers synonyms, cultural variations, and context.
+   *
+   * @param other - Another SemanticBoolean to compare
+   * @returns Equivalence result with confidence score
+   *
+   * @example
+   * SemanticBoolean.from("yes").semanticallyEquals(SemanticBoolean.from("absolutely"))
+   * // { equivalent: true, confidence: 0.95 }
+   */
+  semanticallyEquals(other: SemanticBoolean): { equivalent: boolean; confidence: number };
+
+  /**
+   * Compare the strength/emphasis of two boolean expressions.
+   * Returns negative if this is weaker, positive if stronger.
+   *
+   * @param other - Another SemanticBoolean to compare strength with
+   * @returns Number from -1 to 1 indicating relative strength
+   *
+   * @example
+   * SemanticBoolean.from("I guess so").compareStrength(SemanticBoolean.from("Absolutely!"))
+   * // -0.6 (weaker)
+   */
+  compareStrength(other: SemanticBoolean): number;
+
+  /**
+   * Check if the expression is affirmative (yes, sure, absolutely, etc.).
+   *
+   * @returns true if the expression indicates agreement/yes
+   *
+   * @example
+   * SemanticBoolean.from("sure thing").isAffirmative() // true
+   * SemanticBoolean.from("I guess so").isAffirmative() // true
+   */
+  isAffirmative(): boolean;
+
+  /**
+   * Check if the expression is negative (no, nope, never, etc.).
+   *
+   * @returns true if the expression indicates disagreement/no
+   *
+   * @example
+   * SemanticBoolean.from("no way").isNegative() // true
+   * SemanticBoolean.from("I'd rather not").isNegative() // true
+   */
+  isNegative(): boolean;
+
+  /**
+   * Check if the expression indicates uncertainty (maybe, perhaps, etc.).
+   *
+   * @returns true if the expression is ambiguous or uncertain
+   *
+   * @example
+   * SemanticBoolean.from("maybe").isUncertain() // true
+   * SemanticBoolean.from("it depends").isUncertain() // true
+   */
+  isUncertain(): boolean;
+
+  /**
+   * Check if the expression is conditional (yes, but...; if...; etc.).
+   *
+   * @returns true if the response depends on conditions
+   *
+   * @example
+   * SemanticBoolean.from("yes, if the price is right").isConditional() // true
+   */
+  isConditional(): boolean;
+
+  /**
+   * Extract conditions from a conditional boolean expression.
+   *
+   * @returns Array of condition strings, empty if not conditional
+   *
+   * @example
+   * SemanticBoolean.from("yes, if you can deliver by Friday").extractConditions()
+   * // ["deliver by Friday"]
+   */
+  extractConditions(): string[];
+
+  /**
+   * Get the raw boolean value.
+   *
+   * @returns The resolved true/false value
+   */
+  valueOf(): boolean;
+
+  /**
+   * Get the confidence level of the interpretation.
+   *
+   * @returns Number from 0 to 1 indicating interpretation confidence
+   */
+  confidence(): number;
+}
+```
