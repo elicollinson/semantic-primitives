@@ -40,3 +40,22 @@ export {
   type InferReasonResult,
   type AppropriateResult,
 } from './null/index.ts';
+
+// SemanticSymbol
+export {
+  SemanticSymbol,
+  type SymbolClassifyResult,
+  type SemanticEqualsResultWithReason,
+  type ValidateResultWithWarnings,
+  type Suggestion,
+} from './symbol/index.ts';
+
+// SemanticBigInt
+export {
+  SemanticBigInt,
+  type FormatStyle,
+  type FormatOptions,
+  type ScaleResult,
+  type MatchPattern,
+  type InferDomainResult,
+} from './bigint/index.ts';
