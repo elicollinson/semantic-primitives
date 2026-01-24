@@ -1,6 +1,6 @@
 /**
  * Semantic Types
- * LLM-enhanced reference types with semantic understanding
+ * LLM-enhanced reference and structural types
  */
 
 // SemanticArray
@@ -14,3 +14,16 @@ export {
   type ArrayInferTypeResult,
   type ArrayDetectPatternResult,
 } from './array/index.ts';
+
+// SemanticError
+export {
+  SemanticError,
+  type ErrorClassifyResult,
+  type ResourceSuggestion,
+  type ReportRecommendation,
+  type SemanticEqualsResultWithReason,
+  type RootCauseResult,
+  type SuggestedFix,
+  type RecoveryStrategy,
+  type ErrorSeverityLevel,
+} from './error/index.ts';
