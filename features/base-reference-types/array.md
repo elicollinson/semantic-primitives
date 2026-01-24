@@ -185,3 +185,61 @@ import {
   InferTypeResult
 } from '../../shared/types.ts';
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+
+```
+src/types/array/
+├── index.ts              # Public API exports
+├── array.ts              # SemanticArray class implementation
+├── prompts.ts            # LLM prompt templates
+└── __tests__/
+    ├── array.test.ts     # 79 unit tests
+    └── mocks.ts          # Mock LLM client and responses
+```
+
+### Design Decisions
+
+1. **Class-based implementation**: `SemanticArray<T>` is a class that wraps an internal array rather than extending `Array`. This approach:
+   - Provides better encapsulation of the LLM client
+   - Avoids complications with Array subclassing
+   - Enables immutable operations (all operations return new SemanticArray instances)
+
+2. **Async methods**: All LLM-powered methods return `Promise` since they require API calls:
+   - `semanticallyEquals()`, `semanticFilter()`, `semanticGroup()`, `semanticSort()`
+   - `semanticSearch()`, `detectPatterns()`, `summarize()`, `semanticUnique()`
+   - `validate()`, `enrich()`, `inferElementType()`
+
+3. **Standard array methods preserved**: Common array methods (`map`, `filter`, `reduce`, `forEach`, etc.) are implemented synchronously and return appropriate types (SemanticArray for chainable methods).
+
+4. **Interface implementation**: The class implements `Semantic<T[]>` and `Comparable<SemanticArray<T> | T[], SemanticEqualsResultWithReason>` from shared interfaces. Other interfaces (like `SemanticFilterable`, `SemanticSortable`) were not implemented because they define synchronous return types, but our methods are async.
+
+5. **Renamed types**: `SemanticEqualsOptions` was renamed to `ArraySemanticEqualsOptions` to avoid export collision with `SemanticNumber`'s options type.
+
+### Custom Types
+
+The implementation defines these array-specific types:
+
+- `ArraySemanticEqualsOptions` - Options for equality comparison
+- `SemanticSearchOptions` - Options for semantic search (limit)
+- `SummarizeOptions` - Options for summarization (maxLength, focus)
+- `SemanticUniqueOptions` - Options for deduplication (threshold)
+- `ArrayValidateResult` - Validation result with per-element issues
+- `ArrayInferTypeResult` - Element type inference with optional fields
+- `ArrayDetectPatternResult` - Pattern detection with anomalies
+
+### LLM Integration
+
+- Temperature 0.1 is used for deterministic operations (filter, sort, group, search, validate, unique)
+- Temperature 0.3 is used for more creative operations (summarize, enrich)
+- All LLM responses are expected as JSON and parsed with `JSON.parse()`
+
+### Testing
+
+- 79 unit tests covering all methods
+- Tests use mock LLM clients that return predefined responses
+- No actual LLM calls are made during testing
