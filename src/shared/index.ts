@@ -80,3 +80,104 @@ export {
   type GeneratedTestCase,
   type RegExpTestCases,
 } from './types.ts';
+
+// =============================================================================
+// INTERFACES
+// =============================================================================
+
+// LLM Client
+export {
+  type LLMClientInterface,
+  type LLMCompletionOptions,
+} from './interfaces.ts';
+
+// Core base interfaces
+export {
+  type Semantic,
+  type SemanticFactory,
+} from './interfaces.ts';
+
+// Capability mixin interfaces
+export {
+  type Comparable,
+  type Explainable,
+  type Describable,
+  type Validatable,
+  type ContextValidatable,
+  type PurposeValidatable,
+  type TypeInferable,
+  type PurposeInferable,
+  type SchemaInferable,
+  type Classifiable,
+  type PatternDetectable,
+  type Suggestible,
+  type Summarizable,
+  type SafetyAssessable,
+  type SensitivityDetectable,
+} from './interfaces.ts';
+
+// Collection capability interfaces
+export {
+  type SemanticFilterable,
+  type SemanticSortable,
+  type SemanticGroupable,
+  type SemanticSearchable,
+  type SemanticAccessible,
+  type SemanticSetOperations,
+  type SemanticMergeable,
+} from './interfaces.ts';
+
+// Category-specific interfaces
+export {
+  type SemanticAbsence,
+  type SemanticAbsenceFactory,
+  type SemanticCollection,
+  type SemanticKeyValueCollection,
+  type SemanticCallableType,
+} from './interfaces.ts';
+
+// Transformation interfaces
+export {
+  type KeyTransformable,
+  type UnitConvertible,
+} from './interfaces.ts';
+
+// Test generation interfaces
+export {
+  type TestGeneratable,
+  type RegExpTestGeneratable,
+} from './interfaces.ts';
+
+// Error handling interfaces
+export { type SemanticErrorType } from './interfaces.ts';
+
+// Composite interfaces
+export {
+  type SemanticPrimitiveCapabilities,
+  type SemanticPrimitiveExtended,
+  type SemanticReferenceCapabilities,
+} from './interfaces.ts';
+
+// =============================================================================
+// BASE CLASSES
+// =============================================================================
+
+export {
+  SemanticBase,
+  ComparableSemanticBase,
+  ExplainableSemanticBase,
+  ValidatableSemanticBase,
+  SemanticCollectionBase,
+  SemanticKeyValueBase,
+  SemanticCallableBase,
+  SemanticAbsenceBase,
+  ResultBuilder,
+} from './base-classes.ts';
+
+// Type guards
+export {
+  isSemantic,
+  isComparable,
+  isExplainable,
+  isValidatable,
+} from './base-classes.ts';
