@@ -29,6 +29,16 @@ export {
   type Correction,
 } from './string/index.ts';
 
+// SemanticSymbol
+export {
+  SemanticSymbol,
+  type SymbolClassifyResult,
+  type SemanticEqualsResultWithReason,
+  type ValidateResultWithWarnings,
+  type AppropriateResult,
+  type Suggestion,
+} from './symbol/index.ts';
+
 // SemanticBigInt
 export {
   SemanticBigInt,
