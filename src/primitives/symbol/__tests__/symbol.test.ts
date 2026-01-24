@@ -1,528 +1,472 @@
-/**
- * Unit tests for SemanticSymbol
- */
+import { describe, expect, test, mock } from 'bun:test';
+import { SemanticSymbol, type LLMClientInterface } from '../symbol.ts';
+import type { Message } from '../../../llm/types.ts';
 
-import { describe, test, expect } from 'bun:test';
-import { SemanticSymbol } from '../symbol.ts';
-import {
-  createMockLLMClient,
-  createSequentialMockLLMClient,
-  mockEquivalentResponse,
-  mockNotEquivalentResponse,
-  mockSamePurposeResponse,
-  mockSuggestBetterNameResponse,
-  mockNoSuggestionNeededResponse,
-  mockSingleCharSuggestionResponse,
-  mockClassifyEventResponse,
-  mockClassifyConfigResponse,
-  mockClassifyIdentifierResponse,
-  mockClassifyLifecycleResponse,
-  mockClassifyInternalResponse,
-  mockValidResponse,
-  mockValidWithWarningsResponse,
-  mockInvalidResponse,
-  mockAbbreviationWarningResponse,
-  mockDescribePurposeCacheKeyResponse,
-  mockDescribePurposeAuthTokenResponse,
-  mockDescribePurposeEventResponse,
-  mockAppropriateResponse,
-  mockNotAppropriateResponse,
-  mockAppropriateForConfigResponse,
-} from './mocks.ts';
+/**
+ * Create a mock LLM client that returns predetermined responses
+ */
+function createMockLLMClient(responses: Record<string, string>): LLMClientInterface {
+  return {
+    chat: mock(({ messages, systemPrompt }: { messages: Message[]; systemPrompt?: string }) => {
+      // Find matching response based on system prompt or message content
+      for (const [key, value] of Object.entries(responses)) {
+        if (systemPrompt?.includes(key) || messages.some((m) => m.content.includes(key))) {
+          return Promise.resolve({ content: value });
+        }
+      }
+      // Default response
+      return Promise.resolve({ content: '{"error": "No mock response found"}' });
+    }),
+  };
+}
 
 describe('SemanticSymbol', () => {
-  describe('create', () => {
-    test('creates SemanticSymbol with description', () => {
-      const client = createMockLLMClient({});
-      const ss = SemanticSymbol.create('userAuthToken', client);
-
-      expect(ss.description()).toBe('userAuthToken');
-      expect(typeof ss.valueOf()).toBe('symbol');
+  describe('static create()', () => {
+    test('creates a SemanticSymbol with a description', () => {
+      const sym = SemanticSymbol.create('userAuthToken');
+      expect(sym.description()).toBe('userAuthToken');
+      expect(typeof sym.valueOf()).toBe('symbol');
     });
 
-    test('creates unique symbols for same description', () => {
-      const client = createMockLLMClient({});
-      const ss1 = SemanticSymbol.create('userId', client);
-      const ss2 = SemanticSymbol.create('userId', client);
-
-      expect(ss1.valueOf()).not.toBe(ss2.valueOf());
-      expect(ss1.description()).toBe(ss2.description());
+    test('creates unique symbols for each call', () => {
+      const sym1 = SemanticSymbol.create('test');
+      const sym2 = SemanticSymbol.create('test');
+      expect(sym1.valueOf()).not.toBe(sym2.valueOf());
     });
 
-    test('toString returns symbol string representation', () => {
-      const client = createMockLLMClient({});
-      const ss = SemanticSymbol.create('testSymbol', client);
-
-      expect(ss.toString()).toBe('Symbol(testSymbol)');
+    test('accepts custom LLM client', () => {
+      const mockClient = createMockLLMClient({});
+      const sym = SemanticSymbol.create('test', mockClient);
+      expect(sym.description()).toBe('test');
     });
   });
 
-  describe('for', () => {
-    test('creates global symbol from registry', () => {
-      const client = createMockLLMClient({});
-      const ss = SemanticSymbol.for('app.config.database', client);
-
-      expect(ss.description()).toBe('app.config.database');
-      expect(typeof ss.valueOf()).toBe('symbol');
+  describe('static for()', () => {
+    test('creates a global SemanticSymbol', () => {
+      const sym = SemanticSymbol.for('app.config.database');
+      expect(sym.description()).toBe('app.config.database');
     });
 
     test('returns same instance for same key', () => {
-      const client = createMockLLMClient({});
-      const ss1 = SemanticSymbol.for('test.singleton.key', client);
-      const ss2 = SemanticSymbol.for('test.singleton.key', client);
-
-      expect(ss1).toBe(ss2);
-      expect(ss1.valueOf()).toBe(ss2.valueOf());
+      const sym1 = SemanticSymbol.for('test.global.key');
+      const sym2 = SemanticSymbol.for('test.global.key');
+      expect(sym1).toBe(sym2);
+      expect(sym1.valueOf()).toBe(sym2.valueOf());
     });
 
-    test('uses Symbol.for under the hood', () => {
-      const client = createMockLLMClient({});
-      const ss = SemanticSymbol.for('global.test.key', client);
-
-      expect(ss.valueOf()).toBe(Symbol.for('global.test.key'));
+    test('returns different instances for different keys', () => {
+      const sym1 = SemanticSymbol.for('test.key.one');
+      const sym2 = SemanticSymbol.for('test.key.two');
+      expect(sym1).not.toBe(sym2);
+      expect(sym1.valueOf()).not.toBe(sym2.valueOf());
     });
   });
 
-  describe('fromSymbol', () => {
-    test('wraps existing symbol', () => {
-      const client = createMockLLMClient({});
-      const nativeSymbol = Symbol('existingSymbol');
-      const ss = SemanticSymbol.fromSymbol(nativeSymbol, client);
-
-      expect(ss.valueOf()).toBe(nativeSymbol);
-      expect(ss.description()).toBe('existingSymbol');
+  describe('static from()', () => {
+    test('wraps an existing symbol', () => {
+      const nativeSymbol = Symbol('nativeTest');
+      const sym = SemanticSymbol.from(nativeSymbol);
+      expect(sym.valueOf()).toBe(nativeSymbol);
+      expect(sym.description()).toBe('nativeTest');
     });
 
-    test('handles symbol without description', () => {
-      const client = createMockLLMClient({});
+    test('wraps symbol without description', () => {
       const nativeSymbol = Symbol();
-      const ss = SemanticSymbol.fromSymbol(nativeSymbol, client);
-
-      expect(ss.valueOf()).toBe(nativeSymbol);
-      expect(ss.description()).toBeUndefined();
+      const sym = SemanticSymbol.from(nativeSymbol);
+      expect(sym.valueOf()).toBe(nativeSymbol);
+      expect(sym.description()).toBeUndefined();
     });
   });
 
-  describe('semanticallyEquals', () => {
-    test('returns equivalent for same concept different naming', async () => {
-      const client = createSequentialMockLLMClient([mockEquivalentResponse]);
-      const ss1 = SemanticSymbol.create('userId', client);
-      const ss2 = SemanticSymbol.create('user_id', client);
+  describe('semanticallyEquals()', () => {
+    test('compares symbols with same naming convention', async () => {
+      const mockClient = createMockLLMClient({
+        'symbol naming': JSON.stringify({
+          equivalent: true,
+          confidence: 0.98,
+          note: 'Identical descriptions',
+        }),
+      });
 
-      const result = await ss1.semanticallyEquals(ss2);
-
+      const sym1 = SemanticSymbol.create('userId', mockClient);
+      const sym2 = SemanticSymbol.create('userId', mockClient);
+      const result = await sym1.semanticallyEquals(sym2);
       expect(result.equivalent).toBe(true);
-      expect(result.confidence).toBe(0.95);
-      expect(result.note).toBe('Same concept, different naming convention');
+      expect(result.confidence).toBeGreaterThan(0.9);
     });
 
-    test('returns not equivalent for different concepts', async () => {
-      const client = createSequentialMockLLMClient([mockNotEquivalentResponse]);
-      const ss1 = SemanticSymbol.create('userId', client);
-      const ss2 = SemanticSymbol.create('productPrice', client);
+    test('compares symbols with different naming conventions', async () => {
+      const mockClient = createMockLLMClient({
+        'symbol naming': JSON.stringify({
+          equivalent: true,
+          confidence: 0.95,
+          note: 'Same concept, different naming convention (camelCase vs snake_case)',
+        }),
+      });
 
-      const result = await ss1.semanticallyEquals(ss2);
+      const sym1 = SemanticSymbol.create('userId', mockClient);
+      const sym2 = SemanticSymbol.create('user_id', mockClient);
+      const result = await sym1.semanticallyEquals(sym2);
+      expect(result.equivalent).toBe(true);
+      expect(result.note).toContain('naming convention');
+    });
 
+    test('compares with native symbol', async () => {
+      const mockClient = createMockLLMClient({
+        'symbol naming': JSON.stringify({
+          equivalent: true,
+          confidence: 0.9,
+          note: 'Same concept',
+        }),
+      });
+
+      const sym = SemanticSymbol.create('userId', mockClient);
+      const nativeSymbol = Symbol('userId');
+      const result = await sym.semanticallyEquals(nativeSymbol);
+      expect(result.equivalent).toBe(true);
+    });
+
+    test('returns false for semantically different symbols', async () => {
+      const mockClient = createMockLLMClient({
+        'symbol naming': JSON.stringify({
+          equivalent: false,
+          confidence: 0.95,
+          note: 'Different concepts - user identifier vs product identifier',
+        }),
+      });
+
+      const sym1 = SemanticSymbol.create('userId', mockClient);
+      const sym2 = SemanticSymbol.create('productId', mockClient);
+      const result = await sym1.semanticallyEquals(sym2);
       expect(result.equivalent).toBe(false);
-      expect(result.confidence).toBe(0.9);
-    });
-
-    test('works with native symbol', async () => {
-      const client = createSequentialMockLLMClient([mockSamePurposeResponse]);
-      const ss = SemanticSymbol.create('userId', client);
-      const nativeSymbol = Symbol('user_identifier');
-
-      const result = await ss.semanticallyEquals(nativeSymbol);
-
-      expect(result.equivalent).toBe(true);
     });
 
     test('handles symbols without descriptions', async () => {
-      const client = createMockLLMClient({});
-      const ss1 = SemanticSymbol.fromSymbol(Symbol(), client);
-      const ss2 = SemanticSymbol.fromSymbol(Symbol(), client);
-
-      const result = await ss1.semanticallyEquals(ss2);
-
+      const sym1 = SemanticSymbol.from(Symbol());
+      const sym2 = SemanticSymbol.from(Symbol());
+      const result = await sym1.semanticallyEquals(sym2);
       expect(result.equivalent).toBe(false);
-      expect(result.note).toContain('Cannot compare');
-    });
-
-    test('handles same symbol instance', async () => {
-      const client = createMockLLMClient({});
-      const nativeSymbol = Symbol();
-      const ss1 = SemanticSymbol.fromSymbol(nativeSymbol, client);
-
-      const result = await ss1.semanticallyEquals(nativeSymbol);
-
-      expect(result.equivalent).toBe(true);
       expect(result.confidence).toBe(1.0);
-      expect(result.note).toBe('Same symbol instance');
     });
 
-    test('handles one symbol without description', async () => {
-      const client = createMockLLMClient({});
-      const ss1 = SemanticSymbol.create('userId', client);
-      const ss2 = SemanticSymbol.fromSymbol(Symbol(), client);
-
-      const result = await ss1.semanticallyEquals(ss2);
-
-      expect(result.equivalent).toBe(false);
-      expect(result.confidence).toBe(0.5);
+    test('same symbol instance returns equivalent', async () => {
+      const nativeSymbol = Symbol();
+      const sym1 = SemanticSymbol.from(nativeSymbol);
+      const result = await sym1.semanticallyEquals(nativeSymbol);
+      expect(result.equivalent).toBe(true);
+      expect(result.note).toContain('Same symbol instance');
     });
   });
 
-  describe('suggestBetterName', () => {
+  describe('suggestBetterName()', () => {
     test('suggests better name for abbreviation', async () => {
-      const client = createMockLLMClient(mockSuggestBetterNameResponse);
-      const ss = SemanticSymbol.create('usrid', client);
+      const mockClient = createMockLLMClient({
+        'code naming': JSON.stringify({
+          suggestion: 'userId',
+          reason: 'Expand abbreviations for clarity',
+        }),
+      });
 
-      const result = await ss.suggestBetterName();
-
+      const sym = SemanticSymbol.create('usrid', mockClient);
+      const result = await sym.suggestBetterName();
       expect(result.suggestion).toBe('userId');
-      expect(result.reason).toContain('camelCase');
+      expect(result.reason).toContain('abbreviation');
     });
 
-    test('returns null when name is already good', async () => {
-      const client = createMockLLMClient(mockNoSuggestionNeededResponse);
-      const ss = SemanticSymbol.create('userAuthToken', client);
+    test('returns null suggestion for good name', async () => {
+      const mockClient = createMockLLMClient({
+        'code naming': JSON.stringify({
+          suggestion: null,
+          reason: 'Name follows camelCase convention and is descriptive',
+        }),
+      });
 
-      const result = await ss.suggestBetterName();
-
-      expect(result.suggestion).toBeNull();
-      expect(result.reason).toContain('already clear');
-    });
-
-    test('handles single character names', async () => {
-      const client = createMockLLMClient(mockSingleCharSuggestionResponse);
-      const ss = SemanticSymbol.create('x', client);
-
-      const result = await ss.suggestBetterName();
-
-      expect(result.suggestion).toBeNull();
-      expect(result.reason).toContain('more context');
+      const sym = SemanticSymbol.create('userAuthToken', mockClient);
+      const result = await sym.suggestBetterName();
+      expect(result.suggestion).toBeUndefined();
+      expect(result.reason).toContain('descriptive');
     });
 
     test('handles symbol without description', async () => {
-      const client = createMockLLMClient({});
-      const ss = SemanticSymbol.fromSymbol(Symbol(), client);
+      const sym = SemanticSymbol.from(Symbol());
+      const result = await sym.suggestBetterName();
+      expect(result.suggestion).toBeUndefined();
+      expect(result.reason).toContain('without a description');
+    });
 
-      const result = await ss.suggestBetterName();
+    test('suggests for single letter names', async () => {
+      const mockClient = createMockLLMClient({
+        'code naming': JSON.stringify({
+          suggestion: null,
+          reason: 'Cannot suggest a meaningful name without context about what x represents',
+        }),
+      });
 
-      expect(result.suggestion).toBeNull();
-      expect(result.reason).toBe('Symbol has no description to analyze');
+      const sym = SemanticSymbol.create('x', mockClient);
+      const result = await sym.suggestBetterName();
+      expect(result.reason).toBeDefined();
     });
   });
 
-  describe('classify', () => {
-    test('classifies event symbol', async () => {
-      const client = createMockLLMClient(mockClassifyEventResponse);
-      const ss = SemanticSymbol.create('onUserLogin', client);
+  describe('classify()', () => {
+    test('classifies event handler symbol', async () => {
+      const mockClient = createMockLLMClient({
+        'code analysis': JSON.stringify({
+          category: 'event',
+          subcategory: 'lifecycle',
+        }),
+      });
 
-      const result = await ss.classify();
-
+      const sym = SemanticSymbol.create('onUserLogin', mockClient);
+      const result = await sym.classify();
       expect(result.category).toBe('event');
       expect(result.subcategory).toBe('lifecycle');
     });
 
     test('classifies configuration symbol', async () => {
-      const client = createMockLLMClient(mockClassifyConfigResponse);
-      const ss = SemanticSymbol.create('API_SECRET_KEY', client);
+      const mockClient = createMockLLMClient({
+        'code analysis': JSON.stringify({
+          category: 'configuration',
+          subcategory: 'secrets',
+        }),
+      });
 
-      const result = await ss.classify();
-
+      const sym = SemanticSymbol.create('API_SECRET_KEY', mockClient);
+      const result = await sym.classify();
       expect(result.category).toBe('configuration');
       expect(result.subcategory).toBe('secrets');
     });
 
     test('classifies identifier symbol', async () => {
-      const client = createMockLLMClient(mockClassifyIdentifierResponse);
-      const ss = SemanticSymbol.create('userId', client);
+      const mockClient = createMockLLMClient({
+        'code analysis': JSON.stringify({
+          category: 'identifier',
+          subcategory: 'cache',
+        }),
+      });
 
-      const result = await ss.classify();
-
+      const sym = SemanticSymbol.create('cacheKey', mockClient);
+      const result = await sym.classify();
       expect(result.category).toBe('identifier');
-      expect(result.subcategory).toBe('user');
-    });
-
-    test('classifies lifecycle symbol', async () => {
-      const client = createMockLLMClient(mockClassifyLifecycleResponse);
-      const ss = SemanticSymbol.create('init', client);
-
-      const result = await ss.classify();
-
-      expect(result.category).toBe('lifecycle');
-      expect(result.subcategory).toBe('initialization');
-    });
-
-    test('classifies internal symbol', async () => {
-      const client = createMockLLMClient(mockClassifyInternalResponse);
-      const ss = SemanticSymbol.create('_internal', client);
-
-      const result = await ss.classify();
-
-      expect(result.category).toBe('internal');
     });
 
     test('returns unknown for symbol without description', async () => {
-      const client = createMockLLMClient({});
-      const ss = SemanticSymbol.fromSymbol(Symbol(), client);
-
-      const result = await ss.classify();
-
+      const sym = SemanticSymbol.from(Symbol());
+      const result = await sym.classify();
       expect(result.category).toBe('unknown');
-      expect(result.subcategory).toBeUndefined();
+    });
+
+    test('classifies action symbol', async () => {
+      const mockClient = createMockLLMClient({
+        'code analysis': JSON.stringify({
+          category: 'action',
+          subcategory: 'validation',
+        }),
+      });
+
+      const sym = SemanticSymbol.create('validateInput', mockClient);
+      const result = await sym.classify();
+      expect(result.category).toBe('action');
     });
   });
 
-  describe('validate', () => {
-    test('validates symbol with good name', async () => {
-      const client = createMockLLMClient(mockValidResponse);
-      const ss = SemanticSymbol.create('userAuthToken', client);
+  describe('validate()', () => {
+    test('validates good symbol name', async () => {
+      const mockClient = createMockLLMClient({
+        'code review': JSON.stringify({
+          valid: true,
+          warnings: [],
+        }),
+      });
 
-      const result = await ss.validate();
-
+      const sym = SemanticSymbol.create('userAuthToken', mockClient);
+      const result = await sym.validate();
       expect(result.valid).toBe(true);
-      expect(result.warnings).toEqual([]);
-      expect(result.issues).toEqual([]);
+      expect(result.warnings).toHaveLength(0);
     });
 
-    test('validates symbol with warnings', async () => {
-      const client = createMockLLMClient(mockValidWithWarningsResponse);
-      const ss = SemanticSymbol.create('_private_internal', client);
+    test('validates with warnings for underscore prefix', async () => {
+      const mockClient = createMockLLMClient({
+        'code review': JSON.stringify({
+          valid: true,
+          warnings: ['Underscore prefix suggests private; consider using # for true privacy'],
+        }),
+      });
 
-      const result = await ss.validate();
-
+      const sym = SemanticSymbol.create('_privateInternal', mockClient);
+      const result = await sym.validate();
       expect(result.valid).toBe(true);
       expect(result.warnings.length).toBeGreaterThan(0);
-      expect(result.warnings[0]).toContain('Underscore prefix');
+      expect(result.warnings[0]).toContain('Underscore');
     });
 
     test('validates with custom conventions', async () => {
-      const client = createMockLLMClient(mockAbbreviationWarningResponse);
-      const ss = SemanticSymbol.create('usrId', client);
+      const mockClient = createMockLLMClient({
+        'code review': JSON.stringify({
+          valid: false,
+          warnings: ['Does not follow required SCREAMING_CASE convention'],
+        }),
+      });
 
-      const result = await ss.validate(['Always use full words']);
-
-      expect(result.valid).toBe(true);
-      expect(result.warnings).toContain('Avoid abbreviations like "usr" - use "user" instead');
-    });
-
-    test('returns invalid for poor names', async () => {
-      const client = createMockLLMClient(mockInvalidResponse);
-      const ss = SemanticSymbol.create('x', client);
-
-      const result = await ss.validate();
-
+      const sym = SemanticSymbol.create('myConstant', mockClient);
+      const result = await sym.validate(['Constants must use SCREAMING_CASE']);
       expect(result.valid).toBe(false);
       expect(result.issues.length).toBeGreaterThan(0);
     });
 
-    test('handles symbol without description', async () => {
-      const client = createMockLLMClient({});
-      const ss = SemanticSymbol.fromSymbol(Symbol(), client);
-
-      const result = await ss.validate();
-
+    test('returns invalid for symbol without description', async () => {
+      const sym = SemanticSymbol.from(Symbol());
+      const result = await sym.validate();
       expect(result.valid).toBe(false);
-      expect(result.issues).toContain('Symbol has no description to validate');
+      expect(result.issues).toContain('Symbol has no description');
+    });
+
+    test('validates short name', async () => {
+      const mockClient = createMockLLMClient({
+        'code review': JSON.stringify({
+          valid: false,
+          warnings: ['Name is too short; use a more descriptive name'],
+        }),
+      });
+
+      const sym = SemanticSymbol.create('x', mockClient);
+      const result = await sym.validate();
+      expect(result.valid).toBe(false);
     });
   });
 
-  describe('describePurpose', () => {
-    test('describes cache key purpose', async () => {
-      const client = createMockLLMClient(mockDescribePurposeCacheKeyResponse);
-      const ss = SemanticSymbol.create('cacheKey', client);
+  describe('describePurpose()', () => {
+    test('describes purpose of cache key', async () => {
+      const mockClient = createMockLLMClient({
+        'documentation': JSON.stringify({
+          purpose: 'Unique identifier for cache entries',
+        }),
+      });
 
-      const purpose = await ss.describePurpose();
-
-      expect(purpose).toContain('cache');
-      expect(purpose).toContain('identifier');
+      const sym = SemanticSymbol.create('cacheKey', mockClient);
+      const result = await sym.describePurpose();
+      expect(result).toBe('Unique identifier for cache entries');
     });
 
-    test('describes auth token purpose', async () => {
-      const client = createMockLLMClient(mockDescribePurposeAuthTokenResponse);
-      const ss = SemanticSymbol.create('userAuthToken', client);
+    test('describes purpose of event handler', async () => {
+      const mockClient = createMockLLMClient({
+        'documentation': JSON.stringify({
+          purpose: 'Event handler triggered when a user logs in to the system',
+        }),
+      });
 
-      const purpose = await ss.describePurpose();
-
-      expect(purpose).toContain('Authentication');
+      const sym = SemanticSymbol.create('onUserLogin', mockClient);
+      const result = await sym.describePurpose();
+      expect(result).toContain('user logs in');
     });
 
-    test('describes event handler purpose', async () => {
-      const client = createMockLLMClient(mockDescribePurposeEventResponse);
-      const ss = SemanticSymbol.create('onUserLogin', client);
-
-      const purpose = await ss.describePurpose();
-
-      expect(purpose).toContain('Event handler');
-    });
-
-    test('handles symbol without description', async () => {
-      const client = createMockLLMClient({});
-      const ss = SemanticSymbol.fromSymbol(Symbol(), client);
-
-      const purpose = await ss.describePurpose();
-
-      expect(purpose).toBe('Unknown purpose - symbol has no description');
+    test('returns unknown for symbol without description', async () => {
+      const sym = SemanticSymbol.from(Symbol());
+      const result = await sym.describePurpose();
+      expect(result).toContain('Unknown purpose');
     });
   });
 
-  describe('isAppropriateFor', () => {
-    test('returns appropriate for matching use case', async () => {
-      const client = createMockLLMClient(mockAppropriateResponse);
-      const ss = SemanticSymbol.create('userId', client);
+  describe('isAppropriateFor()', () => {
+    test('tempId is not appropriate for database primary key', async () => {
+      const mockClient = createMockLLMClient({
+        'software design': JSON.stringify({
+          appropriate: false,
+          reason: 'Temporary identifiers should not be used as permanent keys',
+        }),
+      });
 
-      const result = await ss.isAppropriateFor('user identification');
-
-      expect(result.appropriate).toBe(true);
-    });
-
-    test('returns not appropriate for mismatched use case', async () => {
-      const client = createMockLLMClient(mockNotAppropriateResponse);
-      const ss = SemanticSymbol.create('tempId', client);
-
-      const result = await ss.isAppropriateFor('database primary key');
-
+      const sym = SemanticSymbol.create('tempId', mockClient);
+      const result = await sym.isAppropriateFor('database primary key');
       expect(result.appropriate).toBe(false);
       expect(result.reason).toContain('Temporary');
     });
 
-    test('validates config symbol for secrets', async () => {
-      const client = createMockLLMClient(mockAppropriateForConfigResponse);
-      const ss = SemanticSymbol.create('API_SECRET_KEY', client);
+    test('userId is appropriate for user identification', async () => {
+      const mockClient = createMockLLMClient({
+        'software design': JSON.stringify({
+          appropriate: true,
+          reason: 'userId is a clear and appropriate identifier for user-related operations',
+        }),
+      });
 
-      const result = await ss.isAppropriateFor('configuration secrets');
-
+      const sym = SemanticSymbol.create('userId', mockClient);
+      const result = await sym.isAppropriateFor('user identification');
       expect(result.appropriate).toBe(true);
     });
 
-    test('handles symbol without description', async () => {
-      const client = createMockLLMClient({});
-      const ss = SemanticSymbol.fromSymbol(Symbol(), client);
-
-      const result = await ss.isAppropriateFor('any use case');
-
+    test('returns not appropriate for symbol without description', async () => {
+      const sym = SemanticSymbol.from(Symbol());
+      const result = await sym.isAppropriateFor('any use case');
       expect(result.appropriate).toBe(false);
-      expect(result.reason).toContain('Cannot assess');
+      expect(result.reason).toContain('without a description');
+    });
+
+    test('cacheInvalidationKey is appropriate for cache management', async () => {
+      const mockClient = createMockLLMClient({
+        'software design': JSON.stringify({
+          appropriate: true,
+          reason: 'The name clearly indicates its purpose for managing cache invalidation',
+        }),
+      });
+
+      const sym = SemanticSymbol.create('cacheInvalidationKey', mockClient);
+      const result = await sym.isAppropriateFor('cache management');
+      expect(result.appropriate).toBe(true);
     });
   });
 
-  describe('valueOf', () => {
+  describe('valueOf()', () => {
     test('returns the underlying symbol', () => {
-      const client = createMockLLMClient({});
-      const ss = SemanticSymbol.create('testSymbol', client);
-      const value = ss.valueOf();
+      const sym = SemanticSymbol.create('test');
+      expect(typeof sym.valueOf()).toBe('symbol');
+    });
 
-      expect(typeof value).toBe('symbol');
-      expect(value.description).toBe('testSymbol');
+    test('returns same symbol from from()', () => {
+      const nativeSymbol = Symbol('native');
+      const sym = SemanticSymbol.from(nativeSymbol);
+      expect(sym.valueOf()).toBe(nativeSymbol);
     });
   });
 
-  describe('description', () => {
-    test('returns the symbol description', () => {
-      const client = createMockLLMClient({});
-      const ss = SemanticSymbol.create('myDescription', client);
-
-      expect(ss.description()).toBe('myDescription');
+  describe('description()', () => {
+    test('returns the description', () => {
+      const sym = SemanticSymbol.create('testDescription');
+      expect(sym.description()).toBe('testDescription');
     });
 
     test('returns undefined for symbol without description', () => {
-      const client = createMockLLMClient({});
-      const ss = SemanticSymbol.fromSymbol(Symbol(), client);
-
-      expect(ss.description()).toBeUndefined();
+      const sym = SemanticSymbol.from(Symbol());
+      expect(sym.description()).toBeUndefined();
     });
   });
 
-  describe('toString', () => {
-    test('returns symbol string representation', () => {
-      const client = createMockLLMClient({});
-      const ss = SemanticSymbol.create('testSymbol', client);
+  describe('toString()', () => {
+    test('returns string representation', () => {
+      const sym = SemanticSymbol.create('test');
+      expect(sym.toString()).toBe('Symbol(test)');
+    });
 
-      expect(ss.toString()).toBe('Symbol(testSymbol)');
+    test('returns Symbol() for symbol without description', () => {
+      const sym = SemanticSymbol.from(Symbol());
+      expect(sym.toString()).toBe('Symbol()');
     });
   });
 
-  describe('toJSON', () => {
-    test('returns JSON representation', () => {
-      const client = createMockLLMClient({});
-      const ss = SemanticSymbol.create('jsonTest', client);
-
-      const json = ss.toJSON();
-
-      expect(json).toEqual({
-        description: 'jsonTest',
-      });
+  describe('toJSON()', () => {
+    test('returns description for JSON serialization', () => {
+      const sym = SemanticSymbol.create('test');
+      expect(sym.toJSON()).toBe('test');
     });
 
-    test('handles undefined description', () => {
-      const client = createMockLLMClient({});
-      const ss = SemanticSymbol.fromSymbol(Symbol(), client);
-
-      const json = ss.toJSON();
-
-      expect(json).toEqual({
-        description: undefined,
-      });
+    test('returns undefined for symbol without description', () => {
+      const sym = SemanticSymbol.from(Symbol());
+      expect(sym.toJSON()).toBeUndefined();
     });
-  });
-});
 
-describe('SemanticSymbol prompts', () => {
-  test('createSemanticallyEqualsPrompt includes both descriptions', async () => {
-    const { createSemanticallyEqualsPrompt } = await import('../prompts.ts');
-    const prompt = createSemanticallyEqualsPrompt('userId', 'user_id');
-
-    expect(prompt).toContain('Symbol 1 description: "userId"');
-    expect(prompt).toContain('Symbol 2 description: "user_id"');
-  });
-
-  test('createSuggestBetterNamePrompt includes description', async () => {
-    const { createSuggestBetterNamePrompt } = await import('../prompts.ts');
-    const prompt = createSuggestBetterNamePrompt('usrid');
-
-    expect(prompt).toContain('Symbol description: "usrid"');
-  });
-
-  test('createClassifyPrompt includes description', async () => {
-    const { createClassifyPrompt } = await import('../prompts.ts');
-    const prompt = createClassifyPrompt('onUserLogin');
-
-    expect(prompt).toContain('Symbol description: "onUserLogin"');
-    expect(prompt).toContain('event');
-    expect(prompt).toContain('configuration');
-  });
-
-  test('createValidatePrompt includes description and conventions', async () => {
-    const { createValidatePrompt } = await import('../prompts.ts');
-    const prompt = createValidatePrompt('testSymbol', ['Use camelCase', 'No abbreviations']);
-
-    expect(prompt).toContain('Symbol description: "testSymbol"');
-    expect(prompt).toContain('Use camelCase');
-    expect(prompt).toContain('No abbreviations');
-  });
-
-  test('createValidatePrompt works without conventions', async () => {
-    const { createValidatePrompt } = await import('../prompts.ts');
-    const prompt = createValidatePrompt('testSymbol');
-
-    expect(prompt).toContain('Symbol description: "testSymbol"');
-    expect(prompt).not.toContain('Additional conventions');
-  });
-
-  test('createDescribePurposePrompt includes description', async () => {
-    const { createDescribePurposePrompt } = await import('../prompts.ts');
-    const prompt = createDescribePurposePrompt('cacheKey');
-
-    expect(prompt).toContain('Symbol description: "cacheKey"');
-  });
-
-  test('createIsAppropriateForPrompt includes description and use case', async () => {
-    const { createIsAppropriateForPrompt } = await import('../prompts.ts');
-    const prompt = createIsAppropriateForPrompt('tempId', 'database primary key');
-
-    expect(prompt).toContain('Symbol description: "tempId"');
-    expect(prompt).toContain('Intended use case: "database primary key"');
+    test('works with JSON.stringify', () => {
+      const sym = SemanticSymbol.create('testKey');
+      expect(JSON.stringify({ symbol: sym })).toBe('{"symbol":"testKey"}');
+    });
   });
 });

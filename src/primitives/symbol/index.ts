@@ -1,13 +1,6 @@
 /**
- * SemanticSymbol Module
- * Exports all SemanticSymbol types and utilities
+ * SemanticSymbol module
+ * LLM-enhanced symbol type with semantic understanding
  */
 
-export {
-  SemanticSymbol,
-  type SuggestBetterNameResult,
-  type SymbolClassifyResult,
-  type SemanticEqualsResultWithReason,
-  type ValidateResultWithWarnings,
-  type AppropriateResult,
-} from './symbol.ts';
+export * from './symbol.ts';

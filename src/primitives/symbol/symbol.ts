@@ -1,141 +1,163 @@
 /**
- * SemanticSymbol
- * A symbol type with LLM-powered semantic understanding
+ * SemanticSymbol - LLM-enhanced symbol type with semantic understanding
+ *
+ * Extends the native JavaScript Symbol with semantic operations including:
+ * - Semantic equivalence comparison
+ * - Name suggestion based on conventions
+ * - Category classification
+ * - Validation against best practices
+ * - Purpose description
+ * - Appropriateness assessment
  *
  * Implements shared interfaces:
  * - Semantic<symbol> - Base semantic wrapper
- * - Comparable<SemanticSymbol> - Semantic equality comparison
- * - Classifiable - Category classification
- * - Validatable - Description validation
- * - PurposeValidatable - Use case appropriateness
+ * - Comparable<SemanticSymbol | symbol> - Semantic equality comparison
  */
 
-import type { LLMClient } from '../../llm/client.ts';
-import { getClient } from '../../llm/client.ts';
+import { chat } from '../../llm/index.ts';
+import type { LLMConfig, Message } from '../../llm/types.ts';
 import type {
   SemanticEqualsResultWithReason,
   ValidateResultWithWarnings,
   AppropriateResult,
+  Suggestion,
 } from '../../shared/types.ts';
-import type {
-  Semantic,
-  Comparable,
-  Validatable,
-} from '../../shared/interfaces.ts';
+import type { Semantic, Comparable } from '../../shared/interfaces.ts';
 import {
-  SYMBOL_SYSTEM_PROMPT,
-  createSemanticallyEqualsPrompt,
-  createSuggestBetterNamePrompt,
-  createClassifyPrompt,
-  createValidatePrompt,
-  createDescribePurposePrompt,
-  createIsAppropriateForPrompt,
-} from './prompts.ts';
+  SEMANTIC_EQUALS_SYSTEM,
+  semanticEqualsPrompt,
+  SUGGEST_NAME_SYSTEM,
+  suggestBetterNamePrompt,
+  CLASSIFY_SYSTEM,
+  classifyPrompt,
+  VALIDATE_SYSTEM,
+  validatePrompt,
+  DESCRIBE_PURPOSE_SYSTEM,
+  describePurposePrompt,
+  IS_APPROPRIATE_SYSTEM,
+  isAppropriateForPrompt,
+} from './symbol.prompts.ts';
 
+// Re-export shared types
 export type {
   SemanticEqualsResultWithReason,
   ValidateResultWithWarnings,
   AppropriateResult,
+  Suggestion,
 } from '../../shared/types.ts';
 
-/** Result of suggesting a better name */
-export interface SuggestBetterNameResult {
-  suggestion: string | null;
-  reason: string;
+/** LLM client interface for dependency injection */
+export interface LLMClientInterface {
+  chat(options: { messages: Message[]; systemPrompt?: string } & LLMConfig): Promise<{ content: string }>;
 }
 
-/** Result of classifying a symbol */
+/** Result type for classification without confidence */
 export interface SymbolClassifyResult {
   category: string;
   subcategory?: string;
 }
 
-/** Global symbol registry for SemanticSymbol.for() */
+/** Global registry for SemanticSymbol.for() */
 const globalSymbolRegistry = new Map<string, SemanticSymbol>();
 
 /**
- * SemanticSymbol - Symbol with LLM-powered semantic understanding
- *
- * Unlike traditional Symbols that are just unique identifiers,
- * SemanticSymbol understands naming conventions, categorizes symbols,
- * and validates their appropriateness for different use cases.
+ * SemanticSymbol class
+ * Wraps a Symbol with LLM-powered semantic operations
  *
  * Implements:
- * - Semantic<symbol> - valueOf() returns the symbol value
- * - Comparable<SemanticSymbol> - semanticallyEquals() for comparison
- * - Classifiable<SymbolClassifyResult> - classify() for categorization
- * - Validatable<ValidateResultWithWarnings> - validate() for validation
- * - PurposeValidatable - isAppropriateFor() for use case checking
+ * - Semantic<symbol> - valueOf() returns the symbol
+ * - Comparable<SemanticSymbol | symbol> - semanticallyEquals() for comparison
  */
-export class SemanticSymbol
-  implements
-    Semantic<symbol>,
-    Comparable<SemanticSymbol, SemanticEqualsResultWithReason>,
-    Validatable<ValidateResultWithWarnings>
-{
-  private readonly symbol: symbol;
-  private readonly symbolDescription: string | undefined;
-  private readonly client: LLMClient;
+export class SemanticSymbol implements Semantic<symbol>, Comparable<SemanticSymbol | symbol> {
+  private readonly _symbol: symbol;
+  private readonly _description: string | undefined;
+  private readonly _llmClient: LLMClientInterface;
+  private readonly _llmConfig?: LLMConfig;
 
+  /**
+   * Private constructor - use static factory methods to create instances
+   */
   private constructor(
-    sym: symbol,
-    description: string | undefined,
-    client?: LLMClient
+    symbolOrDescription: symbol | string,
+    llmClient?: LLMClientInterface,
+    llmConfig?: LLMConfig
   ) {
-    this.symbol = sym;
-    this.symbolDescription = description;
-    this.client = client ?? getClient();
+    if (typeof symbolOrDescription === 'symbol') {
+      this._symbol = symbolOrDescription;
+      this._description = symbolOrDescription.description;
+    } else {
+      this._symbol = Symbol(symbolOrDescription);
+      this._description = symbolOrDescription;
+    }
+    this._llmClient = llmClient || { chat };
+    this._llmConfig = llmConfig;
   }
 
   /**
-   * Create a symbol with a semantically meaningful description.
-   * Validates that the description is clear and follows conventions.
+   * Create a SemanticSymbol with a semantically meaningful description.
    *
    * @param description - Human-readable description of the symbol's purpose
-   * @param client - Optional LLM client to use
+   * @param llmClient - Optional LLM client for dependency injection
+   * @param llmConfig - Optional LLM configuration
    * @returns SemanticSymbol instance
    *
    * @example
    * SemanticSymbol.create("userAuthToken")
    * SemanticSymbol.create("cacheInvalidationKey")
    */
-  static create(description: string, client?: LLMClient): SemanticSymbol {
-    const sym = Symbol(description);
-    return new SemanticSymbol(sym, description, client);
+  static create(
+    description: string,
+    llmClient?: LLMClientInterface,
+    llmConfig?: LLMConfig
+  ): SemanticSymbol {
+    return new SemanticSymbol(description, llmClient, llmConfig);
   }
 
   /**
    * Create or retrieve a global symbol with semantic validation.
+   * Uses the global symbol registry to ensure the same key always returns the same SemanticSymbol.
    *
    * @param key - Registry key for the symbol
-   * @param client - Optional LLM client to use
+   * @param llmClient - Optional LLM client for dependency injection
+   * @param llmConfig - Optional LLM configuration
    * @returns SemanticSymbol from global registry
    *
    * @example
    * SemanticSymbol.for("app.config.database")
    * SemanticSymbol.for("plugin.lifecycle.init")
    */
-  static for(key: string, client?: LLMClient): SemanticSymbol {
+  static for(
+    key: string,
+    llmClient?: LLMClientInterface,
+    llmConfig?: LLMConfig
+  ): SemanticSymbol {
+    // Check if already in our registry
     const existing = globalSymbolRegistry.get(key);
     if (existing) {
       return existing;
     }
 
-    const sym = Symbol.for(key);
-    const semanticSymbol = new SemanticSymbol(sym, key, client);
+    // Create using Symbol.for for global symbol registry
+    const globalSymbol = Symbol.for(key);
+    const semanticSymbol = new SemanticSymbol(globalSymbol, llmClient, llmConfig);
     globalSymbolRegistry.set(key, semanticSymbol);
     return semanticSymbol;
   }
 
   /**
-   * Wrap an existing native Symbol
+   * Wrap an existing symbol in a SemanticSymbol.
    *
-   * @param sym - Native Symbol to wrap
-   * @param client - Optional LLM client to use
+   * @param symbol - The native symbol to wrap
+   * @param llmClient - Optional LLM client for dependency injection
+   * @param llmConfig - Optional LLM configuration
    * @returns SemanticSymbol instance
    */
-  static fromSymbol(sym: symbol, client?: LLMClient): SemanticSymbol {
-    return new SemanticSymbol(sym, sym.description, client);
+  static from(
+    symbol: symbol,
+    llmClient?: LLMClientInterface,
+    llmConfig?: LLMConfig
+  ): SemanticSymbol {
+    return new SemanticSymbol(symbol, llmClient, llmConfig);
   }
 
   /**
@@ -143,7 +165,7 @@ export class SemanticSymbol
    * Even unique symbols can be semantically equivalent in purpose.
    *
    * @param other - Another symbol to compare
-   * @returns Equivalence result
+   * @returns Equivalence result with confidence and note
    *
    * @example
    * SemanticSymbol.create("userId").semanticallyEquals(SemanticSymbol.create("user_id"))
@@ -152,41 +174,35 @@ export class SemanticSymbol
   async semanticallyEquals(
     other: SemanticSymbol | symbol
   ): Promise<SemanticEqualsResultWithReason> {
-    const otherDescription =
-      other instanceof SemanticSymbol
-        ? other.symbolDescription
-        : other.description;
+    const otherDesc =
+      other instanceof SemanticSymbol ? other.description() : other.description;
 
-    // If both have no description, they can only be equal by identity
-    if (!this.symbolDescription && !otherDescription) {
-      const isEqual = this.symbol === (other instanceof SemanticSymbol ? other.symbol : other);
+    const thisDesc = this._description || '';
+    const otherDescStr = otherDesc || '';
+
+    // If both have no description, they can only be equal if they're the same symbol
+    if (!thisDesc && !otherDescStr) {
+      const areSame =
+        other instanceof SemanticSymbol
+          ? this._symbol === other.valueOf()
+          : this._symbol === other;
       return {
-        equivalent: isEqual,
+        equivalent: areSame,
         confidence: 1.0,
-        note: isEqual
+        note: areSame
           ? 'Same symbol instance'
-          : 'Cannot compare symbols without descriptions',
+          : 'Different symbols with no descriptions to compare',
       };
     }
 
-    // If one has no description, not semantically comparable
-    if (!this.symbolDescription || !otherDescription) {
-      return {
-        equivalent: false,
-        confidence: 0.5,
-        note: 'Cannot compare symbol without description to one with description',
-      };
-    }
+    const messages: Message[] = [
+      { role: 'user', content: semanticEqualsPrompt(thisDesc, otherDescStr) },
+    ];
 
-    const prompt = createSemanticallyEqualsPrompt(
-      this.symbolDescription,
-      otherDescription
-    );
-
-    const response = await this.client.complete({
-      prompt,
-      systemPrompt: SYMBOL_SYSTEM_PROMPT,
-      temperature: 0.1,
+    const response = await this._llmClient.chat({
+      messages,
+      systemPrompt: SEMANTIC_EQUALS_SYSTEM,
+      ...this._llmConfig,
     });
 
     return JSON.parse(response.content) as SemanticEqualsResultWithReason;
@@ -204,23 +220,35 @@ export class SemanticSymbol
    * SemanticSymbol.create("usrid").suggestBetterName()
    * // { suggestion: "userId", reason: "Use camelCase and avoid abbreviations" }
    */
-  async suggestBetterName(): Promise<SuggestBetterNameResult> {
-    if (!this.symbolDescription) {
+  async suggestBetterName(): Promise<Suggestion> {
+    const desc = this._description || '';
+
+    if (!desc) {
       return {
-        suggestion: null,
-        reason: 'Symbol has no description to analyze',
+        suggestion: undefined,
+        reason: 'Cannot suggest a name for a symbol without a description',
       };
     }
 
-    const prompt = createSuggestBetterNamePrompt(this.symbolDescription);
+    const messages: Message[] = [
+      { role: 'user', content: suggestBetterNamePrompt(desc) },
+    ];
 
-    const response = await this.client.complete({
-      prompt,
-      systemPrompt: SYMBOL_SYSTEM_PROMPT,
-      temperature: 0.1,
+    const response = await this._llmClient.chat({
+      messages,
+      systemPrompt: SUGGEST_NAME_SYSTEM,
+      ...this._llmConfig,
     });
 
-    return JSON.parse(response.content) as SuggestBetterNameResult;
+    const result = JSON.parse(response.content) as {
+      suggestion: string | null;
+      reason: string;
+    };
+
+    return {
+      suggestion: result.suggestion ?? undefined,
+      reason: result.reason,
+    };
   }
 
   /**
@@ -236,19 +264,23 @@ export class SemanticSymbol
    * // { category: "configuration", subcategory: "secrets" }
    */
   async classify(): Promise<SymbolClassifyResult> {
-    if (!this.symbolDescription) {
+    const desc = this._description || '';
+
+    if (!desc) {
       return {
         category: 'unknown',
         subcategory: undefined,
       };
     }
 
-    const prompt = createClassifyPrompt(this.symbolDescription);
+    const messages: Message[] = [
+      { role: 'user', content: classifyPrompt(desc) },
+    ];
 
-    const response = await this.client.complete({
-      prompt,
-      systemPrompt: SYMBOL_SYSTEM_PROMPT,
-      temperature: 0.1,
+    const response = await this._llmClient.chat({
+      messages,
+      systemPrompt: CLASSIFY_SYSTEM,
+      ...this._llmConfig,
     });
 
     return JSON.parse(response.content) as SymbolClassifyResult;
@@ -258,27 +290,31 @@ export class SemanticSymbol
    * Validate the symbol description follows best practices.
    *
    * @param conventions - Optional custom conventions to check against
-   * @returns Validation result
+   * @returns Validation result with warnings
    *
    * @example
    * SemanticSymbol.create("_private_internal").validate()
    * // { valid: true, warnings: ["Underscore prefix suggests private; consider using # for true privacy"] }
    */
   async validate(conventions?: string[]): Promise<ValidateResultWithWarnings> {
-    if (!this.symbolDescription) {
+    const desc = this._description || '';
+
+    if (!desc) {
       return {
         valid: false,
-        issues: ['Symbol has no description to validate'],
-        warnings: [],
+        issues: ['Symbol has no description'],
+        warnings: ['Symbols should have meaningful descriptions'],
       };
     }
 
-    const prompt = createValidatePrompt(this.symbolDescription, conventions);
+    const messages: Message[] = [
+      { role: 'user', content: validatePrompt(desc, conventions) },
+    ];
 
-    const response = await this.client.complete({
-      prompt,
-      systemPrompt: SYMBOL_SYSTEM_PROMPT,
-      temperature: 0.1,
+    const response = await this._llmClient.chat({
+      messages,
+      systemPrompt: VALIDATE_SYSTEM,
+      ...this._llmConfig,
     });
 
     const result = JSON.parse(response.content) as {
@@ -303,16 +339,20 @@ export class SemanticSymbol
    * // "Unique identifier for cache entries"
    */
   async describePurpose(): Promise<string> {
-    if (!this.symbolDescription) {
+    const desc = this._description || '';
+
+    if (!desc) {
       return 'Unknown purpose - symbol has no description';
     }
 
-    const prompt = createDescribePurposePrompt(this.symbolDescription);
+    const messages: Message[] = [
+      { role: 'user', content: describePurposePrompt(desc) },
+    ];
 
-    const response = await this.client.complete({
-      prompt,
-      systemPrompt: SYMBOL_SYSTEM_PROMPT,
-      temperature: 0.1,
+    const response = await this._llmClient.chat({
+      messages,
+      systemPrompt: DESCRIBE_PURPOSE_SYSTEM,
+      ...this._llmConfig,
     });
 
     const result = JSON.parse(response.content) as { purpose: string };
@@ -330,19 +370,23 @@ export class SemanticSymbol
    * // { appropriate: false, reason: "Temporary identifiers should not be used as permanent keys" }
    */
   async isAppropriateFor(useCase: string): Promise<AppropriateResult> {
-    if (!this.symbolDescription) {
+    const desc = this._description || '';
+
+    if (!desc) {
       return {
         appropriate: false,
-        reason: 'Cannot assess appropriateness without a symbol description',
+        reason: 'Cannot assess appropriateness for a symbol without a description',
       };
     }
 
-    const prompt = createIsAppropriateForPrompt(this.symbolDescription, useCase);
+    const messages: Message[] = [
+      { role: 'user', content: isAppropriateForPrompt(desc, useCase) },
+    ];
 
-    const response = await this.client.complete({
-      prompt,
-      systemPrompt: SYMBOL_SYSTEM_PROMPT,
-      temperature: 0.1,
+    const response = await this._llmClient.chat({
+      messages,
+      systemPrompt: IS_APPROPRIATE_SYSTEM,
+      ...this._llmConfig,
     });
 
     return JSON.parse(response.content) as AppropriateResult;
@@ -350,35 +394,31 @@ export class SemanticSymbol
 
   /**
    * Get the underlying Symbol value.
-   *
    * @returns The native Symbol
    */
   valueOf(): symbol {
-    return this.symbol;
+    return this._symbol;
   }
 
   /**
    * Get the symbol's description.
-   *
-   * @returns The description string
+   * @returns The description string or undefined
    */
   description(): string | undefined {
-    return this.symbolDescription;
+    return this._description;
   }
 
   /**
    * Convert to string representation
    */
   toString(): string {
-    return this.symbol.toString();
+    return this._symbol.toString();
   }
 
   /**
-   * Convert to JSON representation
+   * Convert to JSON - symbols cannot be serialized, returns description
    */
-  toJSON(): { description: string | undefined } {
-    return {
-      description: this.symbolDescription,
-    };
+  toJSON(): string | undefined {
+    return this._description;
   }
 }

@@ -32,9 +32,19 @@ export {
 // SemanticSymbol
 export {
   SemanticSymbol,
-  type SuggestBetterNameResult,
   type SymbolClassifyResult,
   type SemanticEqualsResultWithReason,
   type ValidateResultWithWarnings,
   type AppropriateResult,
+  type Suggestion,
 } from './symbol/index.ts';
+
+// SemanticBigInt
+export {
+  SemanticBigInt,
+  type FormatStyle,
+  type FormatOptions,
+  type ScaleResult,
+  type MatchPattern,
+  type InferDomainResult,
+} from './bigint/index.ts';

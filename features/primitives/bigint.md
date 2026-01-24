@@ -148,3 +148,73 @@ import {
   InferDomainResult
 } from '../../shared/types.ts';
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+
+```
+src/primitives/bigint/
+├── index.ts              # Module exports
+├── bigint.ts             # Main SemanticBigInt class implementation
+├── prompts.ts            # LLM prompt templates
+└── __tests__/
+    ├── bigint.test.ts    # Comprehensive unit tests
+    └── mocks.ts          # Mock LLM client utilities
+```
+
+### Interfaces Implemented
+
+- `Semantic<bigint>` - Base wrapper providing `valueOf()`
+- `Comparable<bigint | SemanticBigInt>` - Semantic equality via `semanticallyEquals()`
+- `ContextValidatable` - Domain validation via `isReasonable()`
+- `Describable` (extends `Explainable`) - Human-readable output via `explain()` and `describe()`
+
+### Local vs LLM Operations
+
+The implementation optimizes performance by using local computation where possible:
+
+**Local (no LLM call):**
+- `valueOf()`, `toString()`, `toJSON()` - Basic accessors
+- `scale()` - Magnitude calculation using string length
+- `format({ style: 'full' })` - Thousands separator formatting
+- `matches('even')`, `matches('odd')` - Modulo operations
+- `matches('power-of-two')` - Bitwise check `(n & (n-1)) === 0n`
+- `matches('perfect-square')` - Newton's method for integer square root
+- `matches('prime')` for values ≤ 1,000,000 - Trial division
+- `semanticallyEquals(other, { tolerance: 'exact' })` - Direct equality
+- `explain()` without context - Returns computed scale description
+
+**LLM-powered:**
+- `from(string)` for natural language (e.g., "1 trillion", "10^18")
+- `format({ style: 'words' | 'compact' | 'scientific' })` - Human-readable formatting
+- `describe(context?)` - Context-aware descriptions with comparisons
+- `explain(context)` - Delegates to `describe()` when context provided
+- `isReasonable(domain)` - Domain-specific validation
+- `inferDomain()` - Domain inference from value patterns
+- `matches('prime')` for large values - Heuristic analysis
+- `matches('fibonacci' | 'factorial' | custom)` - Pattern recognition
+- `semanticallyEquals(other, { tolerance: 'approximate' })` - Fuzzy comparison
+
+### Design Decisions
+
+1. **Private constructor with factory methods**: Follows existing primitive patterns, enabling both sync (`fromBigInt`, `fromNumber`) and async (`from`) creation paths.
+
+2. **Scale names**: Supports ones through septillions (10^24). Larger values show the correct magnitude but use the highest available name.
+
+3. **Prime checking threshold**: Values ≤ 1,000,000 use efficient local trial division; larger values use LLM heuristics since primality testing for arbitrary precision integers is computationally expensive.
+
+4. **Perfect square via Newton's method**: Efficient O(log n) integer square root algorithm suitable for BigInt values of any size.
+
+5. **Temperature settings**:
+   - 0.1 for deterministic operations (parsing, comparison, validation)
+   - 0.3 for `describe()` to allow more creative comparisons
+
+### Test Coverage
+
+- 65 unit tests covering all public methods
+- Mock LLM client utilities for isolated testing
+- Tests for edge cases: zero, negative values, boundary conditions
+- Prompt template tests to verify correct formatting

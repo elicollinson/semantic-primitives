@@ -160,39 +160,58 @@ import {
 
 ## Implementation Notes
 
-### Files Created
+### File Structure
 
-- `src/primitives/symbol/symbol.ts` - Main SemanticSymbol class implementation
-- `src/primitives/symbol/prompts.ts` - LLM prompt templates for semantic operations
-- `src/primitives/symbol/index.ts` - Module exports
-- `src/primitives/symbol/__tests__/symbol.test.ts` - Comprehensive unit tests (50 tests)
-- `src/primitives/symbol/__tests__/mocks.ts` - Mock utilities for testing without LLM calls
+```
+src/primitives/symbol/
+├── index.ts              # Re-exports public API
+├── symbol.ts             # Main class implementation
+├── symbol.prompts.ts     # LLM prompt templates
+└── __tests__/
+    └── symbol.test.ts    # Unit tests with mocked LLM
+```
 
-### Key Implementation Details
+### Implementation Details
 
-1. **Static Factory Methods**: `create()` and `for()` create new SemanticSymbol instances. The `for()` method maintains a global registry similar to native `Symbol.for()`.
+1. **Factory Methods**: The class uses a private constructor with three static factory methods:
+   - `create(description)` - Creates a new unique symbol with the given description
+   - `for(key)` - Creates or retrieves a global symbol (uses `Symbol.for()` internally)
+   - `from(symbol)` - Wraps an existing native symbol
 
-2. **Async LLM Operations**: All semantic operations (`semanticallyEquals`, `suggestBetterName`, `classify`, `validate`, `describePurpose`, `isAppropriateFor`) are async since they require LLM calls.
+2. **Global Symbol Registry**: `SemanticSymbol.for()` maintains a separate registry (`globalSymbolRegistry`) to cache SemanticSymbol instances, ensuring the same key always returns the same SemanticSymbol instance.
 
-3. **fromSymbol()**: Added an additional static method `fromSymbol()` to wrap existing native Symbol values.
+3. **Classification Categories**: The `classify()` method recognizes the following categories:
+   - `event` - Event handlers, listeners, callbacks
+   - `configuration` - Config keys, settings, options
+   - `lifecycle` - Initialization, cleanup, state transitions
+   - `identifier` - IDs, keys, references
+   - `action` - Methods, commands, operations
+   - `data` - Data structures, storage
+   - `constant` - Unchanging values
+   - `internal` - Private/internal markers
+   - `metadata` - Descriptive information
+   - `unknown` - Cannot be determined
 
-4. **Graceful Handling**: All methods gracefully handle symbols without descriptions, returning appropriate fallback values.
+4. **Type Differences from Spec**:
+   - `classify()` returns `SymbolClassifyResult` (without confidence) rather than `ClassifyResult` to match the spec
+   - `suggestBetterName()` uses `Suggestion` type where `suggestion` is `string | undefined` instead of `string | null`
 
-5. **Interface Implementation**:
-   - Implements `Semantic<symbol>` for `valueOf()`
-   - Implements `Comparable<SemanticSymbol, SemanticEqualsResultWithReason>` for `semanticallyEquals()`
-   - Implements `Validatable<ValidateResultWithWarnings>` for `validate()`
-   - Note: `Classifiable` and `PurposeValidatable` interfaces are not implemented because:
-     - `Classifiable` requires `confidence` in the result, but spec says "without confidence"
-     - `PurposeValidatable` expects sync returns, but our LLM calls require async
+5. **Edge Cases**: All LLM-powered methods handle symbols without descriptions gracefully, returning appropriate fallback responses.
 
-6. **SymbolClassifyResult**: Custom type for classify result without `confidence` field to match spec requirements.
+### Test Coverage
 
-7. **Global Registry**: Uses a private `Map<string, SemanticSymbol>` for `SemanticSymbol.for()` to ensure same key returns same instance.
+44 tests covering:
+- Factory method behavior (create, for, from)
+- Semantic equality comparison (including naming convention differences)
+- Name suggestion for abbreviations and good names
+- Category classification for various symbol types
+- Validation with custom conventions
+- Purpose description
+- Appropriateness assessment
+- Edge cases (symbols without descriptions)
+- Serialization (toString, toJSON)
 
-### Testing
+### Interfaces Implemented
 
-- 50 unit tests covering all methods and edge cases
-- All tests use mock LLM clients to avoid actual API calls
-- Tests verify both happy paths and edge cases (symbols without descriptions, same instances, etc.)
-- Prompt generation tests verify correct prompt construction
+- `Semantic<symbol>` - Base semantic wrapper with `valueOf()`
+- `Comparable<SemanticSymbol | symbol>` - Semantic equality comparison
