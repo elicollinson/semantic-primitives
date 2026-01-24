@@ -39,3 +39,16 @@ export {
   type RecoveryStrategy,
   type ErrorSeverityLevel,
 } from './error/index.ts';
+
+// SemanticRegExp
+export {
+  SemanticRegExp,
+  type FromOptions as RegExpFromOptions,
+  type TestWithExplanationResult,
+  type SimplifyResult,
+  type ImprovementSuggestion,
+  type RegExpTestCases,
+  type ValidateResultWithWarnings,
+  type RelatedSuggestion,
+  type InferTypeResult,
+} from './regexp/index.ts';
