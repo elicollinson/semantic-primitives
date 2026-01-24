@@ -181,3 +181,26 @@ interface SemanticURL extends URL {
   matches(pattern: string): boolean;
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; differences: string[]; confidence: number }` | `SemanticEqualsResult` (extended) |
+| `classify()` | `{ type: string; category?: string; ...; confidence: number }` | `ClassifyResult` (extended) |
+| `isSafe()` | `{ safe: boolean; reason?: string; severity?: "low" \| "medium" \| "high" }` | `SafetyResult` |
+| `suggestRelated()` | `Array<{ url: string; reason: string }>` | `RelatedSuggestion[]` |
+
+Import shared types:
+```typescript
+import {
+  SemanticEqualsResult,
+  ClassifyResult,
+  SafetyResult,
+  RelatedSuggestion
+} from '../../shared/types.ts';
+```

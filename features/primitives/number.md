@@ -117,6 +117,52 @@ interface SemanticNumber {
 
 ---
 
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; confidence: number }` | `SemanticEqualsResult` |
+| `isReasonable()` | `{ reasonable: boolean; explanation: string }` | `ReasonableResult` |
+| `inferUnit()` | `{ unit: string; confidence: number }` | `InferUnitResult` |
+
+Import shared types:
+```typescript
+import {
+  SemanticEqualsResult,
+  ReasonableResult,
+  InferUnitResult
+} from '../../shared/types.ts';
+```
+
+---
+
+## Shared Interfaces
+
+The implementation uses the following shared interfaces from `src/shared/interfaces.ts`:
+
+| Interface | Purpose |
+|-----------|---------|
+| `Semantic<number>` | Base interface - provides `valueOf()` |
+| `Comparable<number \| SemanticNumber>` | Enables `semanticallyEquals()` method |
+| `ContextValidatable` | Enables `isReasonable()` for context-aware validation |
+| `UnitConvertible<SemanticNumber>` | Enables `convert()` and `inferUnit()` methods |
+| `Describable` | Enables `describe()` and `explain()` methods |
+
+Import shared interfaces:
+```typescript
+import type {
+  Semantic,
+  Comparable,
+  ContextValidatable,
+  UnitConvertible,
+  Describable,
+} from '../../shared/interfaces.ts';
+```
+
+---
+
 ## Implementation Notes
 
 ### File Structure

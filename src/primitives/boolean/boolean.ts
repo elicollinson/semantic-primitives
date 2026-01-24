@@ -1,11 +1,24 @@
 /**
  * SemanticBoolean
  * A boolean type with LLM-powered semantic understanding
+ *
+ * Implements shared interfaces:
+ * - Semantic<boolean> - Base semantic wrapper
+ * - Comparable<SemanticBoolean> - Semantic equality comparison
+ * - Classifiable - Category classification (affirmative, negative, etc.)
  */
 
 import type { LLMClient } from '../../llm/client.ts';
 import { getClient } from '../../llm/client.ts';
-import type { SemanticEqualsResult } from '../../shared/types.ts';
+import type {
+  SemanticEqualsResult,
+  ClassifyResult,
+} from '../../shared/types.ts';
+import type {
+  Semantic,
+  Comparable,
+  Classifiable,
+} from '../../shared/interfaces.ts';
 import {
   BOOLEAN_SYSTEM_PROMPT,
   createFromPrompt,
@@ -15,7 +28,7 @@ import {
   createExtractConditionsPrompt,
 } from './prompts.ts';
 
-export type { SemanticEqualsResult } from '../../shared/types.ts';
+export type { SemanticEqualsResult, ClassifyResult } from '../../shared/types.ts';
 
 /** Options for parsing natural language to boolean */
 export interface FromOptions {
@@ -36,13 +49,30 @@ interface SemanticBooleanState {
 }
 
 /**
+ * Boolean category result for classification
+ */
+export interface BooleanClassifyResult extends ClassifyResult {
+  category: BooleanCategory;
+}
+
+/**
  * SemanticBoolean - Boolean with LLM-powered semantic understanding
  *
  * Unlike traditional booleans that only understand true/false,
  * semantic booleans can interpret natural language, handle ambiguity,
  * and bridge the gap between human communication and binary logic.
+ *
+ * Implements:
+ * - Semantic<boolean> - valueOf() returns the boolean value
+ * - Comparable<SemanticBoolean> - semanticallyEquals() for comparison
+ * - Classifiable<BooleanClassifyResult> - classify() for categorization
  */
-export class SemanticBoolean {
+export class SemanticBoolean
+  implements
+    Semantic<boolean>,
+    Comparable<SemanticBoolean>,
+    Classifiable<BooleanClassifyResult>
+{
   private readonly state: SemanticBooleanState;
   private readonly client: LLMClient;
 
@@ -333,6 +363,19 @@ export class SemanticBoolean {
    */
   getCategory(): BooleanCategory {
     return this.state.category;
+  }
+
+  /**
+   * Classify the boolean expression.
+   * Implements Classifiable interface.
+   *
+   * @returns Classification result with category and confidence
+   */
+  classify(): BooleanClassifyResult {
+    return {
+      category: this.state.category,
+      confidence: this.state.confidence,
+    };
   }
 
   /**

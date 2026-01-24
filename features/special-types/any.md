@@ -164,3 +164,26 @@ interface SemanticAny {
   narrowTo<T>(guard: (x: unknown) => x is T): T | null;
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `classifyIntent()` | `{ intent: ...; reason: string; risk: "low" \| "medium" \| "high" }` | Uses `SeverityLevel` for risk |
+| `suggestType()` | `{ type: string; interface?: string; confidence: number }` | `ConfidenceResult` (extended) |
+| `isSafeFor()` | `{ safe: boolean; reason?: string }` | `SafetyResult` |
+| `explain()` | `{ explanation: string; alternatives: string[] }` | `ExplanationResult` |
+
+Import shared types:
+```typescript
+import {
+  SeverityLevel,
+  ConfidenceResult,
+  SafetyResult,
+  ExplanationResult
+} from '../../shared/types.ts';
+```

@@ -7,11 +7,29 @@
  * - Reasonableness validation
  * - Unit inference and conversion
  * - Human-friendly descriptions
+ *
+ * Implements shared interfaces:
+ * - Semantic<number> - Base semantic wrapper
+ * - Comparable<number | SemanticNumber> - Semantic equality comparison
+ * - ContextValidatable - Reasonableness checks
+ * - UnitConvertible<SemanticNumber> - Unit conversion
+ * - Describable - Human-friendly descriptions
  */
 
 import { chat } from '../../llm/index.ts';
 import type { LLMConfig, Message } from '../../llm/types.ts';
-import type { SemanticEqualsResult } from '../../shared/types.ts';
+import type {
+  SemanticEqualsResult,
+  ReasonableResult,
+  InferUnitResult,
+} from '../../shared/types.ts';
+import type {
+  Semantic,
+  Comparable,
+  ContextValidatable,
+  UnitConvertible,
+  Describable,
+} from '../../shared/interfaces.ts';
 import {
   PARSE_NUMBER_SYSTEM,
   parseNumberPrompt,
@@ -27,27 +45,19 @@ import {
   describeNumberPrompt,
 } from './number.prompts.ts';
 
-// Re-export shared type
-export type { SemanticEqualsResult } from '../../shared/types.ts';
-
-/** Result of reasonableness validation */
-export interface ReasonableResult {
-  reasonable: boolean;
-  explanation: string;
-}
-
-/** Result of unit inference */
-export interface InferUnitResult {
-  unit: string;
-  confidence: number;
-}
+// Re-export shared types
+export type {
+  SemanticEqualsResult,
+  ReasonableResult,
+  InferUnitResult,
+} from '../../shared/types.ts';
 
 /** Options for semantic equality comparison */
 export interface SemanticEqualsOptions {
   tolerance?: 'exact' | 'approximate' | number;
 }
 
-/** LLM client interface for dependency injection */
+/** LLM client interface for dependency injection (compatible with shared LLMClientInterface) */
 export interface LLMClientInterface {
   chat(options: { messages: Message[]; systemPrompt?: string } & LLMConfig): Promise<{ content: string }>;
 }
@@ -55,8 +65,22 @@ export interface LLMClientInterface {
 /**
  * SemanticNumber class
  * Wraps a numeric value with LLM-powered semantic operations
+ *
+ * Implements:
+ * - Semantic<number> - valueOf() returns the numeric value
+ * - Comparable<number | SemanticNumber> - semanticallyEquals() for comparison
+ * - ContextValidatable - isReasonable() for context-aware validation
+ * - UnitConvertible<SemanticNumber> - convert() and inferUnit()
+ * - Describable - describe() for human-friendly descriptions
  */
-export class SemanticNumber {
+export class SemanticNumber
+  implements
+    Semantic<number>,
+    Comparable<number | SemanticNumber>,
+    ContextValidatable,
+    UnitConvertible<SemanticNumber>,
+    Describable
+{
   private readonly _value: number;
   private readonly _llmClient: LLMClientInterface;
   private readonly _llmConfig?: LLMConfig;
@@ -274,6 +298,17 @@ export class SemanticNumber {
    */
   valueOf(): number {
     return this._value;
+  }
+
+  /**
+   * Explain the number in a human-readable way.
+   * Implements Explainable interface.
+   *
+   * @param context - Optional context for the explanation
+   * @returns Human-readable explanation
+   */
+  async explain(context?: string): Promise<string> {
+    return this.describe(context);
   }
 
   /**

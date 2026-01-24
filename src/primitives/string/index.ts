@@ -3,11 +3,34 @@
  *
  * Extends native string capabilities with AI-powered semantic operations
  * including meaning-aware comparisons, classification, and analysis.
+ *
+ * Implements shared interfaces:
+ * - Semantic<string> - Base semantic wrapper
+ * - Comparable<string | SemanticString> - Semantic equality comparison
+ * - Validatable - Rule-based validation
+ * - Classifiable - Category classification
+ * - Summarizable - Text summarization
+ * - SensitivityDetectable - Sensitive data detection
  */
 
 import type { LLMClient } from '../../llm/client.ts';
 import { getClient } from '../../llm/client.ts';
-import type { SemanticEqualsResult } from '../../shared/types.ts';
+import type {
+  SemanticEqualsResult,
+  ClassifyResult,
+  ValidateResult,
+  DetectIntentResult,
+  DetectLanguageResult,
+  Correction,
+} from '../../shared/types.ts';
+import type {
+  Semantic,
+  Comparable,
+  Validatable,
+  Classifiable,
+  Summarizable,
+  SensitivityDetectable,
+} from '../../shared/interfaces.ts';
 import {
   semanticallyEqualsPrompt,
   classifyPrompt,
@@ -21,49 +44,32 @@ import {
   suggestCorrectionsPrompt,
 } from './string.prompts.ts';
 
-export type { SemanticEqualsResult } from '../../shared/types.ts';
+// Re-export shared types
+export type {
+  SemanticEqualsResult,
+  ClassifyResult,
+  ValidateResult,
+  DetectIntentResult,
+  DetectLanguageResult,
+  Correction,
+} from '../../shared/types.ts';
 
-/** Result of string classification */
-export interface ClassifyResult {
-  category: string;
-  confidence: number;
-}
-
-/** Result of semantic validation */
-export interface ValidateResult {
-  valid: boolean;
-  issues: string[];
-}
-
-/** Result of intent detection */
-export interface DetectIntentResult {
-  intent: string;
-  subtype?: string;
-  topic?: string;
-  confidence: number;
-}
-
-/** Result of language detection */
-export interface DetectLanguageResult {
-  language: string;
-  confidence: number;
-}
-
-/** Result of sensitive information detection */
+/** Result of sensitive information detection (alias for SensitiveResult) */
 export interface ContainsSensitiveResult {
   hasSensitive: boolean;
   types: string[];
 }
 
-/** A suggested correction */
-export interface Correction {
-  original: string;
-  suggestion: string;
-  reason?: string;
-}
-
 /**
  * SemanticString class - wraps a string with semantic capabilities
+ *
+ * Implements:
+ * - Semantic<string> - valueOf() returns the string value
+ * - Comparable<string | SemanticString> - semanticallyEquals() for comparison
+ * - Validatable - validate() for rule-based validation
+ * - Classifiable - classify() for categorization
+ * - Summarizable - summarize() for text summarization
+ * - SensitivityDetectable - containsSensitive() for PII detection
  *
  * @example
  * ```ts
@@ -72,7 +78,15 @@ export interface Correction {
  * // { equivalent: true, confidence: 0.92 }
  * ```
  */
-export class SemanticString {
+export class SemanticString
+  implements
+    Semantic<string>,
+    Comparable<string | SemanticString>,
+    Validatable,
+    Classifiable,
+    Summarizable,
+    SensitivityDetectable
+{
   private readonly value: string;
   private readonly client: LLMClient;
 

@@ -132,3 +132,26 @@ interface SemanticSymbol {
   description(): string | undefined;
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; confidence: number; note?: string }` | `SemanticEqualsResultWithReason` |
+| `classify()` | `{ category: string; subcategory?: string }` | `ClassifyResult` (without confidence) |
+| `validate()` | `{ valid: boolean; warnings: string[] }` | `ValidateResultWithWarnings` |
+| `isAppropriateFor()` | `{ appropriate: boolean; reason: string }` | `AppropriateResult` |
+
+Import shared types:
+```typescript
+import {
+  SemanticEqualsResultWithReason,
+  ClassifyResult,
+  ValidateResultWithWarnings,
+  AppropriateResult
+} from '../../shared/types.ts';
+```

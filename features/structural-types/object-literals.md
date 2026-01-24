@@ -185,3 +185,26 @@ interface SemanticObjectLiteral<T extends object> {
   valueOf(): T;
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; mappings?: Record<string, string>; confidence: number }` | `SemanticEqualsResultWithMappings` |
+| `inferSchema()` | `{ name: string; properties: Record<...>; required: string[]; optional: string[]; confidence: number }` | `InferSchemaResult` |
+| `findProperties()` | `Array<{ key: string; value: unknown; relevance: number }>` | `SearchResult[]` (extended) |
+| `isSensitive()` | `{ sensitive: boolean; type?: string; recommendation?: string }` | `SensitiveResult` |
+
+Import shared types:
+```typescript
+import {
+  SemanticEqualsResultWithMappings,
+  InferSchemaResult,
+  SearchResult,
+  SensitiveResult
+} from '../../shared/types.ts';
+```

@@ -161,3 +161,19 @@ interface SemanticVoid {
   };
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `validateUsage()` | `{ appropriate: boolean; reason: string; suggestion?: string }` | `AppropriateResult` (extended) |
+| `isAppropriateFor()` | `{ appropriate: boolean; reason: string }` | `AppropriateResult` |
+
+Import shared types:
+```typescript
+import { AppropriateResult } from '../../shared/types.ts';
+```

@@ -140,6 +140,43 @@ interface SemanticBoolean {
 
 ---
 
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; confidence: number }` | `SemanticEqualsResult` |
+| `classify()` | `{ category: BooleanCategory; confidence: number }` | `ClassifyResult` (extended as `BooleanClassifyResult`) |
+
+Import shared types:
+```typescript
+import { SemanticEqualsResult, ClassifyResult } from '../../shared/types.ts';
+```
+
+---
+
+## Shared Interfaces
+
+The implementation uses the following shared interfaces from `src/shared/interfaces.ts`:
+
+| Interface | Purpose |
+|-----------|---------|
+| `Semantic<boolean>` | Base interface - provides `valueOf()` |
+| `Comparable<SemanticBoolean>` | Enables `semanticallyEquals()` method |
+| `Classifiable<BooleanClassifyResult>` | Enables `classify()` method |
+
+Import shared interfaces:
+```typescript
+import type {
+  Semantic,
+  Comparable,
+  Classifiable,
+} from '../../shared/interfaces.ts';
+```
+
+---
+
 ## Implementation Notes
 
 ### File Structure

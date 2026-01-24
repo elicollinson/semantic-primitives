@@ -163,3 +163,26 @@ interface SemanticDate extends Date {
   inferMeaning(context?: string): { meaning: string; type: string; confidence: number };
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; confidence: number }` | `SemanticEqualsResult` |
+| `durationTo()` | `{ description: string; days: number; businessDays?: number }` | `DurationResult` |
+| `isReasonable()` | `{ reasonable: boolean; reason?: string }` | `ReasonableResult` |
+| `inferMeaning()` | `{ meaning: string; type: string; confidence: number }` | `InferMeaningResult` |
+
+Import shared types:
+```typescript
+import {
+  SemanticEqualsResult,
+  DurationResult,
+  ReasonableResult,
+  InferMeaningResult
+} from '../../shared/types.ts';
+```

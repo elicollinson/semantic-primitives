@@ -164,3 +164,32 @@ interface SemanticFunction<T extends (...args: any[]) => any> {
   valueOf(): T;
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; confidence: number }` | `SemanticEqualsResult` |
+| `validateArgs()` | `{ valid: boolean; issues: string[] }` | `ValidateResult` |
+| `inferPurpose()` | `{ purpose: string; category: string; confidence: number }` | `InferPurposeResult` |
+| `suggestImprovements()` | `Array<{ suggestion: string; reason: string }>` | `ImprovementSuggestion[]` |
+| `detectIssues()` | `Array<{ issue: string; severity: string }>` | `DetectedIssue[]` |
+| `generateTests()` | `Array<{ input: unknown[]; expectedOutput: unknown; description: string }>` | `GeneratedTestCase[]` |
+| `isSafeToCall()` | `{ safe: boolean; reason?: string }` | `SafetyResult` |
+
+Import shared types:
+```typescript
+import {
+  SemanticEqualsResult,
+  ValidateResult,
+  InferPurposeResult,
+  ImprovementSuggestion,
+  DetectedIssue,
+  GeneratedTestCase,
+  SafetyResult
+} from '../../shared/types.ts';
+```

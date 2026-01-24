@@ -162,3 +162,26 @@ interface SemanticArray<T> extends Array<T> {
   inferElementType(): { type: string; confidence: number; fields?: string[] };
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; confidence: number; note?: string }` | `SemanticEqualsResultWithReason` |
+| `semanticSearch()` | `Array<{ item: T; relevance: number }>` | `SearchResult<T>[]` |
+| `detectPatterns()` | `{ patterns: string[]; anomalies: Array<...> }` | `DetectPatternResult` (extended) |
+| `inferElementType()` | `{ type: string; confidence: number; fields?: string[] }` | `InferTypeResult` (extended) |
+
+Import shared types:
+```typescript
+import {
+  SemanticEqualsResultWithReason,
+  SearchResult,
+  DetectPatternResult,
+  InferTypeResult
+} from '../../shared/types.ts';
+```

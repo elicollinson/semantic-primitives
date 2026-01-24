@@ -129,3 +129,24 @@ interface SemanticNull {
   isNull(): true;
 }
 ```
+
+---
+
+## Shared Types
+
+The following shared types from `src/shared/types.ts` are available for this interface:
+
+| Method | Return Type | Shared Type |
+|--------|-------------|-------------|
+| `semanticallyEquals()` | `{ equivalent: boolean; confidence: number }` | `SemanticEqualsResult` |
+| `inferReason()` | `{ reason: string; type: string }` | `InferReasonResult` |
+| `isAppropriate()` | `{ appropriate: boolean; reason: string }` | `AppropriateResult` |
+
+Import shared types:
+```typescript
+import {
+  SemanticEqualsResult,
+  InferReasonResult,
+  AppropriateResult
+} from '../../shared/types.ts';
+```
