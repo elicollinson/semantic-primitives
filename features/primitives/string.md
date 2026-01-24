@@ -187,6 +187,33 @@ import {
 
 ---
 
+## Shared Interfaces
+
+The implementation uses the following shared interfaces from `src/shared/interfaces.ts`:
+
+| Interface | Purpose |
+|-----------|---------|
+| `Semantic<string>` | Base interface - provides `valueOf()` |
+| `Comparable<string \| SemanticString>` | Enables `semanticallyEquals()` method |
+| `Validatable` | Enables `validate()` method with natural language rules |
+| `Classifiable` | Enables `classify()` method for categorization |
+| `Summarizable` | Enables `summarize()` method for text summarization |
+| `SensitivityDetectable` | Enables `containsSensitive()` method for PII detection |
+
+Import shared interfaces:
+```typescript
+import type {
+  Semantic,
+  Comparable,
+  Validatable,
+  Classifiable,
+  Summarizable,
+  SensitivityDetectable,
+} from '../../shared/interfaces.ts';
+```
+
+---
+
 ## Implementation Notes
 
 ### File Structure
