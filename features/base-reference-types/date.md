@@ -186,3 +186,79 @@ import {
   InferMeaningResult
 } from '../../shared/types.ts';
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+The implementation follows the project structure guidelines:
+```
+src/types/date/
+├── index.ts        # Re-exports public API
+├── date.ts         # Main SemanticDate class (600+ lines)
+├── prompts.ts      # LLM prompt templates (200+ lines)
+└── __tests__/
+    └── date.test.ts  # Unit tests with mocked LLM (700+ lines)
+```
+
+### Interface Compatibility
+To comply with the shared `Comparable` and `Describable` interfaces from `src/shared/interfaces.ts`:
+
+1. **`semanticallyEquals()`** accepts `options?: Record<string, unknown>` with a `precision` property instead of a direct precision parameter:
+   ```typescript
+   // Interface-compliant signature
+   semanticallyEquals(other: Date | SemanticDate, options?: Record<string, unknown>): Promise<SemanticEqualsResult>
+
+   // Usage
+   date.semanticallyEquals(otherDate, { precision: 'day' })
+   ```
+
+2. **`describe()`** accepts `context?: string` instead of options object. Style is inferred from context:
+   ```typescript
+   // Interface-compliant signature
+   describe(context?: string): Promise<string>
+
+   // Usage - pass 'relative', 'absolute', or any context string
+   date.describe('relative')  // Uses relative style
+   date.describe('absolute')  // Uses absolute style
+   date.describe()            // Uses 'smart' style by default
+   ```
+
+### Naming Conventions
+To avoid export conflicts with primitives module:
+- `DateLLMClientInterface` instead of `LLMClientInterface`
+- `DateSemanticEqualsOptions` instead of `SemanticEqualsOptions`
+
+### Immutability
+- The constructor creates a defensive copy of the input Date
+- `valueOf()` returns a copy of the internal Date to prevent mutation
+- All mutation operations (`add()`, `next()`, `previous()`) return new SemanticDate instances
+
+### Date Delegation
+SemanticDate wraps but does not extend Date. Common Date methods are delegated:
+- `getTime()`, `getFullYear()`, `getMonth()`, `getDate()`, `getDay()`
+- `getHours()`, `getMinutes()`, `getSeconds()`, `getMilliseconds()`
+- `toISOString()`, `toString()`, `toJSON()`
+
+### Async Operations
+All LLM-powered operations are async:
+- `from()` (static) - natural language parsing
+- `semanticallyEquals()` - semantic comparison
+- `describe()` - natural language description
+- `formatFor()` - context-aware formatting
+- `isIn()` - period membership
+- `next()` / `previous()` - occurrence finding
+- `durationTo()` - duration calculation
+- `isReasonable()` - reasonableness validation
+- `add()` - semantic duration addition
+- `inferMeaning()` - meaning inference
+- `explain()` - human-readable explanation
+
+### Test Coverage
+56 unit tests covering:
+- Constructor and immutability
+- Static `from()` with Date and string inputs
+- All semantic methods with mocked LLM responses
+- Date method delegation
+- Error handling for unparseable inputs
