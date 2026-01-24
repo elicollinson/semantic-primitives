@@ -74,9 +74,9 @@ export class GoogleProvider implements LLMProviderInterface {
       model: modelName,
       usage: usageMetadata
         ? {
-            promptTokens: usageMetadata.promptTokenCount ?? 0,
-            completionTokens: usageMetadata.candidatesTokenCount ?? 0,
-            totalTokens: usageMetadata.totalTokenCount ?? 0,
+            promptTokens: usageMetadata.promptTokenCount,
+            completionTokens: usageMetadata.candidatesTokenCount,
+            totalTokens: usageMetadata.totalTokenCount,
           }
         : undefined,
       raw: response,
@@ -115,9 +115,9 @@ export class GoogleProvider implements LLMProviderInterface {
       model: modelName,
       usage: usageMetadata
         ? {
-            promptTokens: usageMetadata.promptTokenCount ?? 0,
-            completionTokens: usageMetadata.candidatesTokenCount ?? 0,
-            totalTokens: usageMetadata.totalTokenCount ?? 0,
+            promptTokens: usageMetadata.promptTokenCount,
+            completionTokens: usageMetadata.candidatesTokenCount,
+            totalTokens: usageMetadata.totalTokenCount,
           }
         : undefined,
       raw: response,

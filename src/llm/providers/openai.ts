@@ -65,7 +65,7 @@ export class OpenAIProvider implements LLMProviderInterface {
     });
 
     const choice = response.choices[0];
-    const content = choice?.message?.content || '';
+    const content = choice?.message.content ?? '';
 
     return {
       content,
@@ -98,7 +98,7 @@ export class OpenAIProvider implements LLMProviderInterface {
     });
 
     const choice = response.choices[0];
-    const content = choice?.message?.content || '';
+    const content = choice?.message.content ?? '';
 
     return {
       content,

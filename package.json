@@ -25,7 +25,10 @@
     "build:types": "tsc --emitDeclarationOnly --outDir dist",
     "dev": "bun run --watch src/index.ts",
     "test": "bun test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "check": "bun run typecheck && bun run lint"
   },
   "keywords": [
     "llm",
@@ -40,8 +43,11 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@types/bun": "latest",
-    "typescript": "^5"
+    "eslint": "^9.39.2",
+    "typescript": "^5",
+    "typescript-eslint": "^8.53.1"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",

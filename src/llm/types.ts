@@ -101,7 +101,7 @@ export interface LLMEnvironment {
 /** Get environment configuration */
 export function getEnvConfig(): LLMEnvironment {
   return {
-    provider: (process.env['LLM_PROVIDER'] as LLMProvider) || 'google',
+    provider: (process.env['LLM_PROVIDER'] || 'google') as LLMProvider,
     openai: {
       apiKey: process.env['OPENAI_API_KEY'],
       model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
