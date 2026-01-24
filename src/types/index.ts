@@ -39,3 +39,13 @@ export {
   type RecoveryStrategy,
   type ErrorSeverityLevel,
 } from './error/index.ts';
+
+// SemanticURL
+export {
+  SemanticURL,
+  type URLSemanticEqualsResult,
+  type URLClassifyResult,
+  type URLValidateForResult,
+  type ParsedQueryParam,
+  type URLLLMClientInterface,
+} from './url/index.ts';

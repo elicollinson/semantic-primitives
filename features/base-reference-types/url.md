@@ -204,3 +204,51 @@ import {
   RelatedSuggestion
 } from '../../shared/types.ts';
 ```
+
+---
+
+## Implementation Notes
+
+### Location
+- Implementation: `src/types/url/url.ts`
+- Prompts: `src/types/url/prompts.ts`
+- Tests: `src/types/url/__tests__/url.test.ts`
+- Exports: `src/types/url/index.ts`
+
+### Key Design Decisions
+
+1. **Static `from()` Factory Method**: Unlike some other semantic types that use async `from()`, SemanticURL uses a synchronous factory method since URL parsing is deterministic and doesn't require LLM assistance. The method handles incomplete URLs by automatically adding `https://` protocol for domain-like strings.
+
+2. **Async LLM Operations**: All methods that require semantic understanding (`semanticallyEquals`, `classify`, `validateFor`, `explain`, `extractInfo`, `isSafe`, `canonical`, `variations`, `parseQuery`, `suggestRelated`, `matches`) are async and return Promises.
+
+3. **Interface Implementation**: The class implements:
+   - `Semantic<URL>` - via `valueOf()` returning a copy of the underlying URL
+   - `Comparable<URL | string, URLSemanticEqualsResult>` - via `semanticallyEquals()`
+   - `Classifiable<URLClassifyResult>` - via `classify()`
+   - `Explainable` - via `explain()`
+
+   Note: `PurposeValidatable`, `SafetyAssessable`, and `Suggestible` interfaces are not formally implemented because they expect synchronous return types, but the equivalent async methods are provided.
+
+4. **Immutability**: The underlying URL is stored as a copy and `valueOf()` returns a new copy to maintain immutability.
+
+5. **Native URL Properties**: All standard URL properties (`href`, `protocol`, `hostname`, `host`, `port`, `pathname`, `search`, `searchParams`, `hash`, `origin`, `username`, `password`) are exposed as getters.
+
+### Extended Types
+
+- `URLSemanticEqualsResult`: Extends `SemanticEqualsResult` with a `differences: string[]` field
+- `URLClassifyResult`: Extends `ClassifyResult` with `type`, `resource?`, and `action?` fields
+- `URLValidateForResult`: Purpose validation result with `valid`, `reason?`, and `warnings` fields
+- `ParsedQueryParam`: Query parameter parsing result with `value` and `meaning` fields
+
+### Testing
+
+All 12 methods are tested with mocked LLM responses (66 test cases total). Tests cover:
+- Constructor and factory method behavior
+- URL parsing with various formats (protocols, relative paths, query params, etc.)
+- All semantic operations with realistic mock responses
+- Native URL property access
+- JSON serialization
+
+### Dependencies
+
+The implementation uses the shared LLM client (`chat` function from `../../llm/index.ts`) for all semantic operations. The `URLLLMClientInterface` allows dependency injection for testing.
