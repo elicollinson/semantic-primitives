@@ -157,3 +157,69 @@ interface SemanticNumber {
   valueOf(): number;
 }
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+
+- **Implementation**: `src/primitives/number.ts`
+- **Prompts**: `src/primitives/number.prompts.ts`
+- **Tests**: `src/primitives/__tests__/number.test.ts`
+- **Export**: Re-exported from `src/primitives/index.ts` and `src/index.ts`
+
+### Design Decisions
+
+1. **Dependency Injection for LLM Client**: The `SemanticNumber` class accepts an optional `LLMClientInterface` for dependency injection, enabling easy mocking in tests without actual LLM calls.
+
+2. **Optimized Parsing**: The `from()` method first attempts simple parsing (numeric strings, currency formats, k/M/B suffixes) before falling back to LLM-based parsing. This reduces unnecessary LLM calls for common formats.
+
+3. **Non-LLM Operations**: Several methods operate without LLM calls when possible:
+   - `semanticallyEquals()` with `exact` or numeric tolerance
+   - `format()` uses Intl.NumberFormat
+   - `isOutlier()` uses z-score calculation
+   - `matches()` uses mathematical algorithms for patterns
+
+4. **Pattern Matching**: Supports the following patterns in `matches()`:
+   - `even`, `odd`, `prime`, `power-of-two`
+   - `positive`, `negative`, `zero`
+   - `integer`, `decimal`/`float`
+   - `perfect-square`, `fibonacci`
+   - Patterns are case-insensitive and accept hyphens, underscores, or spaces
+
+5. **Prompt Organization**: All LLM prompts are centralized in `number.prompts.ts` with:
+   - System prompts for each operation type
+   - User prompt template functions
+   - Structured JSON response formats
+
+### Test Coverage
+
+102 tests covering:
+- Constructor and basic operations
+- Simple parsing (no LLM)
+- LLM-based parsing with mocked responses
+- Semantic equality with various tolerances
+- Reasonableness validation
+- Unit inference and conversion
+- Number formatting
+- Outlier detection with z-score
+- Pattern matching for all supported patterns
+- Edge cases (empty datasets, negative numbers, decimals)
+
+### Async Operations
+
+The following methods require LLM calls and are async:
+- `SemanticNumber.from()` (for complex inputs)
+- `semanticallyEquals()` (with `approximate` tolerance)
+- `isReasonable()`
+- `inferUnit()`
+- `convert()`
+- `describe()`
+
+### Future Considerations
+
+1. **Caching**: Consider adding response caching for repeated LLM calls with the same parameters
+2. **Streaming**: For large descriptions, consider streaming responses
+3. **Batch Operations**: Add batch methods for processing multiple numbers efficiently
+4. **Currency Support**: Enhanced currency detection and real-time conversion rates
