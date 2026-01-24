@@ -28,3 +28,13 @@ export {
   type ContainsSensitiveResult,
   type Correction,
 } from './string/index.ts';
+
+// SemanticBigInt
+export {
+  SemanticBigInt,
+  type FormatStyle,
+  type FormatOptions,
+  type ScaleResult,
+  type MatchPattern,
+  type InferDomainResult,
+} from './bigint/index.ts';
