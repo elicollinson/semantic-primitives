@@ -3,6 +3,18 @@
  * LLM-enhanced reference and structural types
  */
 
+// SemanticArray
+export {
+  SemanticArray,
+  type ArraySemanticEqualsOptions,
+  type SemanticSearchOptions,
+  type SummarizeOptions,
+  type SemanticUniqueOptions,
+  type ArrayValidateResult,
+  type ArrayInferTypeResult,
+  type ArrayDetectPatternResult,
+} from './array/index.ts';
+
 // SemanticError
 export {
   SemanticError,
