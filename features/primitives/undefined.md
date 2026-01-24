@@ -150,3 +150,61 @@ import {
   InferReasonResult
 } from '../../shared/types.ts';
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+
+The implementation is located in `src/primitives/undefined/`:
+
+```
+src/primitives/undefined/
+├── index.ts                    # Public API exports
+├── undefined.ts                # Main SemanticUndefined class
+├── prompts.ts                  # LLM prompt templates
+└── __tests__/
+    ├── undefined.test.ts       # Unit tests (56 tests)
+    └── mocks.ts                # Mock utilities for testing
+```
+
+### Design Decisions
+
+1. **Does not implement `SemanticAbsence<undefined>`**: Unlike `SemanticNull`, `SemanticUndefined` uses different classification types (`not-initialized`, `optional-unset`, `property-missing`, `void-return`) that don't align with the `SemanticAbsence` interface's expected types (`not-set`, `not-applicable`, `unknown`). This is intentional as undefined has distinct semantics from null.
+
+2. **Private constructor pattern**: Uses `static because()` and `static create()` factory methods consistent with other semantic primitives.
+
+3. **LLM client injection**: All async operations accept an optional `LLMClient` parameter for dependency injection, enabling comprehensive unit testing with mocks.
+
+4. **Classification types**: Five distinct classification types for undefined:
+   - `not-initialized`: Variable/property declared but never assigned
+   - `optional-unset`: Optional parameter/property not provided
+   - `property-missing`: Accessing a property that doesn't exist
+   - `void-return`: Function that doesn't explicitly return a value
+   - `unknown`: Cannot determine the nature of the undefined
+
+5. **Both `getContext()` and `getReason()`**: Provides `getContext()` per the spec and `getReason()` as an alias for API compatibility with other semantic types.
+
+### Exported Types
+
+```typescript
+export {
+  SemanticUndefined,
+  type UndefinedType,
+  type UndefinedClassifyResult,
+  type SuggestInitializationResult,
+  type TypeHint,
+  type AcceptableResult,
+  type CompareToNullResult,
+  type SemanticEqualsResult,
+  type InferReasonResult,
+} from './undefined/index.ts';
+```
+
+### Test Coverage
+
+- 56 unit tests covering all methods
+- Tests use mocked LLM client to avoid actual API calls
+- Comprehensive coverage for edge cases (no context, missing parameters, etc.)
+- Prompt template tests verify correct parameter inclusion
