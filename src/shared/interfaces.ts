@@ -624,12 +624,15 @@ export interface SemanticAbsence<T extends null | undefined> extends Semantic<T>
   /**
    * Classify the type of absence.
    *
-   * @returns Classification result
+   * @returns Classification result (sync or async)
    */
   classify(): {
     type: 'not-set' | 'not-applicable' | 'unknown';
     canBeProvided: boolean;
-  };
+  } | Promise<{
+    type: 'not-set' | 'not-applicable' | 'unknown';
+    canBeProvided: boolean;
+  }>;
 }
 
 /**

@@ -150,3 +150,62 @@ import {
   AppropriateResult
 } from '../../shared/types.ts';
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+
+```
+src/primitives/null/
+├── index.ts          # Module exports
+├── null.ts           # Main SemanticNull class implementation
+├── prompts.ts        # LLM prompt templates
+└── __tests__/
+    ├── mocks.ts      # Mock LLM client and response fixtures
+    └── null.test.ts  # Unit tests (43 tests)
+```
+
+### Design Decisions
+
+1. **Async Methods**: All LLM-powered methods (`semanticallyEquals`, `inferReason`, `suggestDefault`, `isAppropriate`, `classify`, `explain`) return Promises since they require LLM calls. This aligns with the async nature of the LLM client.
+
+2. **Static Factory Methods**: Uses `SemanticNull.because(reason)` and `SemanticNull.create()` as factory methods instead of a public constructor. This provides clearer API semantics and allows for future optimizations.
+
+3. **Synchronous Fallbacks**: `semanticallyEquals()` returns synchronous results when comparing two nulls without reasons (both equivalent with confidence 1.0) or when only one has a reason (not equivalent with confidence 0.7), avoiding unnecessary LLM calls.
+
+4. **Classify Without Reason**: When `classify()` is called on a `SemanticNull` without a reason, it returns `{ type: 'unknown', canBeProvided: true }` synchronously without an LLM call.
+
+5. **Interface Implementation**: Implements `Semantic<null>`, `Comparable<SemanticNull>`, `Explainable`, and `SemanticAbsence<null>` interfaces from the shared module.
+
+6. **Dependency Injection**: All LLM-dependent methods accept an optional `LLMClient` parameter for testing and customization. Falls back to `getClient()` singleton when not provided.
+
+### Additional Types Exported
+
+- `NullType`: Union type for classification (`'not-set' | 'not-applicable' | 'unknown'`)
+- `NullClassifyResult`: Result type for `classify()` method
+- `SuggestDefaultResult`: Result type for `suggestDefault()` method
+- `SchemaInfo`: Input type for schema information in `suggestDefault()`
+- `AppropriateContext`: Input type for context in `isAppropriate()`
+
+### Interface Update
+
+The `SemanticAbsence` interface in `src/shared/interfaces.ts` was updated to allow async `classify()` returns, matching the async nature of LLM operations:
+
+```typescript
+classify(): {
+  type: 'not-set' | 'not-applicable' | 'unknown';
+  canBeProvided: boolean;
+} | Promise<{
+  type: 'not-set' | 'not-applicable' | 'unknown';
+  canBeProvided: boolean;
+}>;
+```
+
+### Test Coverage
+
+- 43 unit tests covering all public methods
+- All tests use mocked LLM client to avoid real API calls
+- Tests verify both synchronous fallbacks and async LLM paths
+- Prompt generation tests ensure correct formatting

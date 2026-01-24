@@ -28,3 +28,15 @@ export {
   type ContainsSensitiveResult,
   type Correction,
 } from './string/index.ts';
+
+// SemanticNull
+export {
+  SemanticNull,
+  type NullType,
+  type NullClassifyResult,
+  type SuggestDefaultResult,
+  type SchemaInfo,
+  type AppropriateContext,
+  type InferReasonResult,
+  type AppropriateResult,
+} from './null/index.ts';
