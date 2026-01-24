@@ -187,3 +187,47 @@ import {
   ErrorSeverityLevel
 } from '../../shared/types.ts';
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+
+```
+src/types/error/
+├── index.ts          # Re-exports public API
+├── error.ts          # Main SemanticError class implementation
+├── prompts.ts        # LLM prompt templates
+└── __tests__/
+    ├── error.test.ts # Comprehensive unit tests
+    └── mocks.ts      # Mock LLM client utilities
+```
+
+### Key Implementation Decisions
+
+1. **Async Methods**: All LLM-powered methods (`classify()`, `explain()`, `suggestFixes()`, `inferRootCause()`, `matches()`, `getResources()`, `shouldReport()`, `recoveryStrategy()`, `getSeverity()`) are implemented as async methods that return Promises, since they require LLM API calls.
+
+2. **Classification Caching**: The `classify()` result is cached on the instance to avoid redundant LLM calls, since classification is often used by other methods like `recoveryStrategy()`.
+
+3. **Error Inheritance**: `SemanticError` extends the native `Error` class, preserving full compatibility with JavaScript error handling including stack traces.
+
+4. **Context Propagation**: The optional `context` parameter in `from()` is stored and passed to LLM prompts to provide additional information for better analysis.
+
+5. **Immutable Context**: The `getContext()` method returns a copy of the context object to prevent external mutation.
+
+6. **Interface Updates**: The `SemanticErrorType` interface in `src/shared/interfaces.ts` was updated to support async return types for LLM-powered methods.
+
+### Prompt Design
+
+The prompts follow best practices:
+- Clear system prompt establishing the AI role as an error analyst
+- Structured JSON output format specified in each prompt
+- Audience-specific guidelines for the `explain()` method
+- Pattern matching guidance with common error categories
+
+### Testing
+
+- 45 unit tests covering all public methods
+- Mock LLM client utilities for deterministic testing without actual API calls
+- Tests for edge cases including unknown error types and empty contexts
