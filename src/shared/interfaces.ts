@@ -834,12 +834,12 @@ export interface SemanticErrorType
   /**
    * Suggest fixes for the error.
    */
-  suggestFixes(): { fix: string; confidence: number; code?: string }[];
+  suggestFixes(): { fix: string; confidence: number; code?: string }[] | Promise<{ fix: string; confidence: number; code?: string }[]>;
 
   /**
    * Infer the root cause.
    */
-  inferRootCause(): { cause: string; confidence: number };
+  inferRootCause(): { cause: string; confidence: number } | Promise<{ cause: string; confidence: number }>;
 
   /**
    * Get recovery strategy.
@@ -848,12 +848,16 @@ export interface SemanticErrorType
     strategy: 'retry' | 'fallback' | 'abort' | 'ignore';
     maxAttempts?: number;
     backoff?: string;
-  };
+  } | Promise<{
+    strategy: 'retry' | 'fallback' | 'abort' | 'ignore';
+    maxAttempts?: number;
+    backoff?: string;
+  }>;
 
   /**
    * Get severity level.
    */
-  getSeverity(): 'critical' | 'error' | 'warning' | 'info';
+  getSeverity(): 'critical' | 'error' | 'warning' | 'info' | Promise<'critical' | 'error' | 'warning' | 'info'>;
 }
 
 // =============================================================================
