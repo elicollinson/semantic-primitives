@@ -29,13 +29,24 @@ export {
   type Correction,
 } from './string/index.ts';
 
+// SemanticNull
+export {
+  SemanticNull,
+  type NullType,
+  type NullClassifyResult,
+  type SuggestDefaultResult,
+  type SchemaInfo,
+  type AppropriateContext,
+  type InferReasonResult,
+  type AppropriateResult,
+} from './null/index.ts';
+
 // SemanticSymbol
 export {
   SemanticSymbol,
   type SymbolClassifyResult,
   type SemanticEqualsResultWithReason,
   type ValidateResultWithWarnings,
-  type AppropriateResult,
   type Suggestion,
 } from './symbol/index.ts';
 
