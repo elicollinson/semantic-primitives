@@ -13,8 +13,6 @@ import type {
   SemanticEqualsResultWithReason,
   SemanticEqualsResultWithMappings,
   ValidateResult,
-  ValidateResultWithWarnings,
-  ConfidenceResult,
   ClassifyResult,
   InferTypeResult,
   InferPurposeResult,
@@ -131,7 +129,7 @@ export interface Comparable<T, TResult extends SemanticEqualsResult = SemanticEq
    * @returns Equivalence result with confidence score (sync or async)
    */
   semanticallyEquals(
-    other: T | unknown,
+    other: T,
     options?: Record<string, unknown>
   ): TResult | Promise<TResult>;
 }
@@ -312,7 +310,7 @@ export interface PatternDetectable {
    */
   detectPatterns?(): {
     patterns: string[];
-    anomalies?: Array<{ index: number; reason: string }>;
+    anomalies?: { index: number; reason: string }[];
     confidence?: number;
   };
 
@@ -355,7 +353,7 @@ export interface Suggestible {
    *
    * @returns Related suggestions
    */
-  suggestRelated?(): Array<{ value?: string; url?: string; pattern?: string; reason: string }>;
+  suggestRelated?(): { value?: string; url?: string; pattern?: string; reason: string }[];
 }
 
 /**
@@ -443,12 +441,11 @@ export interface SensitivityDetectable {
 /**
  * Capability for semantic filtering.
  *
- * @template T - The element type
  * @template TSelf - The collection type (for return type)
  *
  * Used by: SemanticArray, SemanticSet, SemanticRecord
  */
-export interface SemanticFilterable<T, TSelf> {
+export interface SemanticFilterable<TSelf> {
   /**
    * Filter elements using natural language criteria.
    *
@@ -511,7 +508,14 @@ export interface SemanticSearchable<T> {
   semanticSearch(
     criteria: string,
     options?: { limit?: number }
-  ): Array<SearchResult<T>>;
+  ): SearchResult<T>[];
+}
+
+/** Semantic get result type */
+export interface SemanticGetResultType<K, V> {
+  value: V | undefined;
+  matchedKey: K | undefined;
+  confidence: number;
 }
 
 /**
@@ -528,24 +532,20 @@ export interface SemanticAccessible<K, V> {
    *
    * @param query - Key or semantic query
    * @param context - Optional context
-   * @returns Value with match confidence
+   * @returns Value with match confidence (sync or async)
    */
   semanticGet(
     query: string,
     context?: Record<string, unknown>
-  ): {
-    value: V | undefined;
-    matchedKey: K | undefined;
-    confidence: number;
-  };
+  ): SemanticGetResultType<K, V> | Promise<SemanticGetResultType<K, V>>;
 
   /**
    * Check if key semantically exists.
    *
    * @param query - Key or semantic query
-   * @returns Whether a matching key exists
+   * @returns Whether a matching key exists (sync or async)
    */
-  semanticHas?(query: string): boolean;
+  semanticHas?(query: string): boolean | Promise<boolean>;
 }
 
 /**
@@ -671,10 +671,10 @@ export interface SemanticAbsenceFactory<T> {
  */
 export interface SemanticCollection<T, TSelf>
   extends Semantic<T[]>,
-    Comparable<T[], SemanticEqualsResult>,
+    Comparable<T[]>,
     Validatable,
     Summarizable,
-    SemanticFilterable<T, TSelf>,
+    SemanticFilterable<TSelf>,
     SemanticGroupable<TSelf> {}
 
 /**
@@ -717,12 +717,12 @@ export interface SemanticCallableType<TFn extends (...args: unknown[]) => unknow
   /**
    * Generate test cases for the function.
    */
-  generateTests(): Array<{
+  generateTests(): {
     input?: unknown[];
     inputs?: unknown[];
     expectedOutput?: unknown;
     description: string;
-  }>;
+  }[];
 
   /**
    * Call the underlying function.
@@ -790,12 +790,12 @@ export interface TestGeneratable<TInput = unknown[], TOutput = unknown> {
    *
    * @returns Generated test cases
    */
-  generateTests(): Array<{
+  generateTests(): {
     input?: TInput;
     inputs?: TInput;
     expectedOutput?: TOutput;
     description: string;
-  }>;
+  }[];
 }
 
 /**
@@ -831,7 +831,7 @@ export interface SemanticErrorType
   /**
    * Suggest fixes for the error.
    */
-  suggestFixes(): Array<{ fix: string; confidence: number; code?: string }>;
+  suggestFixes(): { fix: string; confidence: number; code?: string }[];
 
   /**
    * Infer the root cause.

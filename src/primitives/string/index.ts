@@ -21,7 +21,6 @@ import type {
   ValidateResult,
   DetectIntentResult,
   DetectLanguageResult,
-  SensitiveResult,
   Correction,
 } from '../../shared/types.ts';
 import type {

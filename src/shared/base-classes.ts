@@ -133,7 +133,7 @@ export abstract class ComparableSemanticBase<T>
    * @returns Equivalence result with confidence
    */
   abstract semanticallyEquals(
-    other: T | unknown,
+    other: unknown,
     options?: Record<string, unknown>
   ): SemanticEqualsResult | Promise<SemanticEqualsResult>;
 }
@@ -210,6 +210,32 @@ export abstract class SemanticCollectionBase<T, TSelf>
    */
   isEmpty(): boolean {
     return this.value.length === 0;
+  }
+
+  /**
+   * Get an element at a specific index.
+   * @param index - The index of the element
+   * @returns The element at the index, or undefined if out of bounds
+   */
+  at(index: number): T | undefined {
+    return this.value[index];
+  }
+
+  /**
+   * Get all elements as an array.
+   * @returns Copy of the underlying array
+   */
+  toArray(): T[] {
+    return [...this.value];
+  }
+
+  /**
+   * Check if the collection includes a specific element.
+   * @param element - The element to search for
+   * @returns true if the element is found
+   */
+  includes(element: T): boolean {
+    return this.value.includes(element);
   }
 
   /**

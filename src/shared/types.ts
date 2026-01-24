@@ -350,7 +350,7 @@ export interface DurationResult {
  */
 export interface DetectedIssue {
   issue: string;
-  severity: string | ExtendedSeverityLevel;
+  severity: ExtendedSeverityLevel;
 }
 
 /**
