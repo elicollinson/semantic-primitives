@@ -7,6 +7,7 @@
 
 import type { LLMClient } from '../../llm/client.ts';
 import { getClient } from '../../llm/client.ts';
+import type { SemanticEqualsResult } from '../../shared/types.ts';
 import {
   semanticallyEqualsPrompt,
   classifyPrompt,
@@ -20,11 +21,7 @@ import {
   suggestCorrectionsPrompt,
 } from './string.prompts.ts';
 
-/** Result of semantic equality comparison */
-export interface SemanticEqualsResult {
-  equivalent: boolean;
-  confidence: number;
-}
+export type { SemanticEqualsResult } from '../../shared/types.ts';
 
 /** Result of string classification */
 export interface ClassifyResult {

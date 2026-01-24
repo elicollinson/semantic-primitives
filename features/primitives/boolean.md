@@ -137,3 +137,54 @@ interface SemanticBoolean {
   confidence(): number;
 }
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+
+```
+src/primitives/boolean/
+├── index.ts                    # Module exports
+├── boolean.ts                  # Main SemanticBoolean class
+├── prompts.ts                  # LLM prompt templates
+└── __tests__/
+    ├── boolean.test.ts         # Unit tests (68 tests)
+    └── mocks.ts                # Mock utilities for testing
+```
+
+### Key Design Decisions
+
+1. **Async API**: All methods that require LLM calls (`from`, `fromImplication`, `semanticallyEquals`, `compareStrength`, `extractConditions`) are async and return Promises. This is necessary because LLM calls are inherently asynchronous.
+
+2. **Client Injection**: All static factory methods accept an optional `LLMClient` parameter for dependency injection, enabling easy testing with mocks.
+
+3. **Category-Based Classification**: Boolean expressions are classified into four categories:
+   - `affirmative` - Clear positive responses (yes, sure, absolutely)
+   - `negative` - Clear negative responses (no, nope, never)
+   - `uncertain` - Ambiguous responses (maybe, perhaps, it depends)
+   - `conditional` - Qualified responses (yes, if...)
+
+4. **Low Temperature**: All LLM calls use `temperature: 0.1` for consistent, deterministic results.
+
+5. **Lazy Condition Extraction**: Conditions parsed during `from()` are cached. `extractConditions()` only makes an additional LLM call if conditions weren't parsed initially.
+
+6. **Helper Methods**: Convenience method `fromBoolean()` creates a SemanticBoolean from a raw boolean with 100% confidence, useful for testing and interop.
+
+### Exported Types
+
+- `SemanticBoolean` - The main class
+- `FromOptions` - Options for `from()` method (locale, context)
+- `SemanticEqualsResult` - Return type for `semanticallyEquals()`
+- `BooleanCategory` - Union type for expression categories
+
+### Testing Strategy
+
+Unit tests use mocked LLM clients to avoid actual API calls. Tests cover:
+- All public methods
+- Category detection (affirmative, negative, uncertain, conditional)
+- Condition extraction
+- Strength comparison
+- Semantic equality
+- JSON serialization
