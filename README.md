@@ -61,6 +61,88 @@ LLM_TEMPERATURE=0.7
 
 Bun automatically loads `.env` files, so no additional setup is required.
 
+### Provider Configuration
+
+#### Google (Default Provider)
+
+Google's Gemini models are the default. To configure:
+
+1. Get an API key from [Google AI Studio](https://aistudio.google.com/apikey)
+2. Set environment variables:
+
+```bash
+GOOGLE_API_KEY=your-google-api-key
+GOOGLE_MODEL=gemini-2.0-flash-lite  # Default model
+```
+
+Available models: `gemini-2.0-flash-lite`, `gemini-2.0-flash`, `gemini-1.5-pro`, `gemini-1.5-flash`
+
+#### OpenAI
+
+To use OpenAI models:
+
+1. Get an API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+2. Set environment variables:
+
+```bash
+LLM_PROVIDER=openai
+OPENAI_API_KEY=your-openai-api-key
+OPENAI_MODEL=gpt-4o-mini  # Default model
+```
+
+Available models: `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`, `gpt-4`, `gpt-3.5-turbo`
+
+#### Anthropic
+
+To use Anthropic's Claude models:
+
+1. Get an API key from [Anthropic Console](https://console.anthropic.com/)
+2. Set environment variables:
+
+```bash
+LLM_PROVIDER=anthropic
+ANTHROPIC_API_KEY=your-anthropic-api-key
+ANTHROPIC_MODEL=claude-sonnet-4-20250514  # Default model
+```
+
+Available models: `claude-opus-4-20250514`, `claude-sonnet-4-20250514`, `claude-3-5-sonnet-20241022`, `claude-3-haiku-20240307`
+
+### Programmatic Configuration
+
+You can also configure providers in code without using environment variables:
+
+```typescript
+import { LLMClient } from 'semantic-primitives';
+
+// Configure with explicit API keys
+const client = new LLMClient({
+  provider: 'anthropic',
+  apiKeys: {
+    openai: 'sk-...',
+    anthropic: 'sk-ant-...',
+    google: 'AIza...',
+  },
+});
+
+// Override provider and model per-request
+const response = await client.complete({
+  prompt: 'Hello!',
+  provider: 'openai',      // Use OpenAI for this request
+  model: 'gpt-4o',         // Use specific model
+  maxTokens: 500,
+  temperature: 0.5,
+});
+```
+
+### Configuration Priority
+
+Settings are resolved in the following order (highest to lowest priority):
+
+1. **Per-request options** - `provider`, `model`, etc. passed to `complete()` or `chat()`
+2. **Client constructor** - Options passed when creating `LLMClient`
+3. **Environment variables** - `LLM_PROVIDER`, `OPENAI_MODEL`, etc.
+4. **Built-in defaults** - Google with `gemini-2.0-flash-lite`
+
 ## API Reference
 
 ### LLMClient
