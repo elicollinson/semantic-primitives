@@ -180,3 +180,74 @@ import {
   ConfidenceResult
 } from '../../shared/types.ts';
 ```
+
+---
+
+## Implementation Notes
+
+### Design Decisions
+
+1. **Immutable Operations**: All mutating operations (`add`, `delete`, `clear`, `semanticAdd`) return new `SemanticSet` instances rather than mutating in place. This follows functional programming patterns and enables easier reasoning about state changes.
+
+2. **Async Semantic Methods**: All LLM-powered methods (`semanticHas`, `semanticAdd`, `semanticallyEquals`, etc.) are async and return Promises. This reflects the inherent asynchronous nature of LLM API calls.
+
+3. **semanticAdd Return Type**: The `semanticAdd` method returns an object containing both the result (`SemanticAddResult`) and the potentially modified set. This allows callers to check whether the add was successful and access the new set in a single call:
+   ```typescript
+   const { result, set: newSet } = await set.semanticAdd('ML');
+   if (result.added) {
+     // use newSet
+   }
+   ```
+
+4. **Factory Methods**: The class uses a private constructor with static factory methods (`from`, `empty`, `of`) following the pattern established by `SemanticArray`. This provides clear, intention-revealing construction APIs.
+
+5. **LLM Client Injection**: An optional `LLMClient` can be passed to factory methods for dependency injection, enabling easy testing with mocked clients.
+
+### File Structure
+
+```
+src/types/set/
+├── index.ts       # Re-exports public API
+├── set.ts         # Main SemanticSet class (450+ lines)
+├── prompts.ts     # LLM prompt templates (12 prompts)
+└── __tests__/
+    ├── set.test.ts  # 68 test cases
+    └── mocks.ts     # Mock responses and client factories
+```
+
+### Exported Types
+
+- `SemanticSet<T>` - Main class
+- `SemanticHasResult` - Result of `semanticHas()`
+- `SemanticAddResult` - Result of `semanticAdd()`
+- `SetSemanticEqualsResult` - Result of `semanticallyEquals()`
+- `SetSummarizeOptions` - Options for `summarize()`
+- `SetValidateResult` - Result of `validate()`
+- `InferThemeResult` - Result of `inferTheme()`
+
+### Test Coverage
+
+68 test cases covering:
+- Factory methods (5 tests)
+- Value access (5 tests)
+- `semanticHas` (4 tests)
+- `semanticAdd` (4 tests)
+- `semanticallyEquals` (5 tests)
+- `semanticIntersection` (4 tests)
+- `semanticUnion` (4 tests)
+- `semanticDifference` (4 tests)
+- `semanticFilter` (3 tests)
+- `groupBy` (2 tests)
+- `summarize` (3 tests)
+- `suggestRelated` (3 tests)
+- `validate` (3 tests)
+- `inferTheme` (3 tests)
+- Standard Set methods (12 tests)
+- Error handling (2 tests)
+- Operation chaining (2 tests)
+- Type safety (2 tests)
+
+### Temperature Settings
+
+- Deterministic operations (has, add, equals, filter, intersect, union, diff, validate, inferTheme): `temperature: 0.1`
+- Creative operations (summarize, suggestRelated): `temperature: 0.3`
