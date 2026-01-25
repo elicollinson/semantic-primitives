@@ -226,3 +226,92 @@ interface SemanticHeaders extends Headers {
   explain(): string;
 }
 ```
+
+---
+
+## Implementation Notes
+
+### Directory Structure
+
+```
+src/types/fetch/
+├── index.ts           # Re-exports all public APIs
+├── request.ts         # SemanticRequest class implementation
+├── response.ts        # SemanticResponse class implementation
+├── headers.ts         # SemanticHeaders class implementation
+├── prompts.ts         # LLM prompt templates for all semantic operations
+└── __tests__/
+    ├── fetch.test.ts  # Comprehensive test suite (75 tests)
+    └── mocks.ts       # Mock LLM client and response factories
+```
+
+### Design Decisions
+
+1. **Composition over Inheritance**: Classes wrap the native `Request`, `Response`, and `Headers` types rather than extending them, providing better encapsulation and testability.
+
+2. **Body Caching**: Both `SemanticRequest` and `SemanticResponse` cache the body text internally to allow multiple LLM operations without consuming the body stream.
+
+3. **Dependency Injection**: All classes accept an optional LLM client interface for easy testing and mock injection.
+
+4. **Type Assertions**: Used type assertions (`as Request`, `as Response`) for clone operations to handle type incompatibilities between Bun and Node.js type definitions.
+
+5. **Async vs Sync Methods**:
+   - `SemanticRequest.explain()`, `analyzeIntent()`, `validate()`, `validateSecurity()` are async
+   - `SemanticResponse.semanticallyEquals()`, `analyze()`, `summarize()`, `validateContract()`, `interpretError()` are async
+   - `SemanticHeaders.semanticallyEquals()`, `validate()`, `suggest()`, `explain()` are async
+   - All native property accessors remain synchronous
+
+### Prompt Architecture
+
+Each semantic operation has a corresponding system prompt and user prompt template:
+- System prompts define the LLM's role and context
+- User prompts format the specific request/response/header data for analysis
+- All prompts request JSON responses for structured parsing
+
+### Testing Strategy
+
+- 75 tests covering all three classes
+- Mock LLM client factories for deterministic testing
+- Tests verify both semantic methods and native API compatibility
+- Integration tests verify cross-class workflows
+
+### Type Compatibility
+
+The implementation handles differences between Bun's Fetch API types and Node.js/undici types:
+- `HeadersIterator` replaced with standard `IterableIterator`
+- Request/Response-specific enums (`RequestCache`, `ResponseType`, etc.) simplified to `string` types
+- Type assertions used where clone operations return incompatible types
+
+### Usage Examples
+
+```typescript
+import { SemanticRequest, SemanticResponse, SemanticHeaders } from 'semantic-primitives';
+
+// Create and analyze a request
+const request = SemanticRequest.from('/api/users?role=admin', {
+  method: 'GET',
+  headers: { Authorization: 'Bearer token123' }
+});
+
+const intent = await request.analyzeIntent();
+// { intent: "fetch admin users", operation: "READ", resource: "users", filters: [...] }
+
+const security = await request.validateSecurity();
+// { safe: true, issues: [], warnings: [] }
+
+// Analyze a response
+const response = await fetch('/api/users');
+const semanticResponse = SemanticResponse.from(response);
+
+const analysis = await semanticResponse.analyze();
+// { dataType: "collection", entityType: "User", count: 25, pagination: { hasMore: true } }
+
+// Work with headers
+const headers = SemanticHeaders.from({
+  'Content-Type': 'application/json',
+  'Authorization': 'Bearer token'
+});
+
+const suggestions = await headers.suggest('API request');
+// [{ header: 'Accept', value: 'application/json', reason: '...' }]
+```

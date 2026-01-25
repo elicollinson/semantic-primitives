@@ -113,6 +113,27 @@ export {
   type InferThemeResult,
 } from './set/index.ts';
 
+// SemanticFetch (Request, Response, Headers)
+export {
+  SemanticRequest,
+  SemanticResponse,
+  SemanticHeaders,
+  type RequestSemanticEqualsResult,
+  type RequestFilter,
+  type RequestIntentResult,
+  type RequestSecurityResult,
+  type RequestLLMClientInterface,
+  type ResponseAnalysisResult,
+  type ResponseContract,
+  type ErrorInterpretationResult,
+  type ResponseLLMClientInterface,
+  type HeadersSemanticEqualsResult,
+  type HeaderIssue,
+  type HeadersValidateResult,
+  type HeaderSuggestion,
+  type HeadersLLMClientInterface,
+} from './fetch/index.ts';
+
 // SemanticTextCodec
 export {
   SemanticTextEncoder,
