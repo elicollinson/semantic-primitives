@@ -40,6 +40,17 @@ export {
   type ErrorSeverityLevel,
 } from './error/index.ts';
 
+// SemanticPromise
+export {
+  SemanticPromise,
+  type PromiseState,
+  type PromiseStatus,
+  type InferredOperation,
+  type RetryOptions,
+  type ValidationResult,
+  type SemanticErrorAnalysis,
+} from './promise/index.ts';
+
 // SemanticRegExp
 export {
   SemanticRegExp,
