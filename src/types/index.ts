@@ -113,6 +113,20 @@ export {
   type InferThemeResult,
 } from './set/index.ts';
 
+// SemanticFormData
+export {
+  SemanticFormData,
+  type FormDataSemanticEqualsResult,
+  type FormDataValidateResult,
+  type FormDataSemanticGetResult,
+  type FormDataInferPurposeResult,
+  type FormDataDetectSensitiveResult,
+  type FormDataMissingSuggestion,
+  type FileValidationRules,
+  type FormDataFileValidateResult,
+  type FormDataLLMClientInterface,
+} from './form-data/index.ts';
+
 // SemanticBun
 export {
   SemanticBun,
