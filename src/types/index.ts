@@ -40,6 +40,34 @@ export {
   type ErrorSeverityLevel,
 } from './error/index.ts';
 
+// SemanticObject
+export {
+  SemanticObject,
+  type ObjectValidateResult,
+  type SemanticMergeOptions as ObjectSemanticMergeOptions,
+  type KeyConvention,
+  type SemanticEqualsResultWithMappings,
+  type SemanticGetResult as ObjectSemanticGetResult,
+  type InferSchemaResult,
+  type MissingSuggestion as ObjectMissingSuggestion,
+  type InferTypeResult,
+  type SensitiveResult,
+} from './object/index.ts';
+
+// SemanticMap
+export {
+  SemanticMap,
+  type SemanticMergeOptions as MapSemanticMergeOptions,
+  type MapValidationRules,
+  type FindKeyResult,
+  type FindValueResult,
+  type MapSemanticEqualsResult,
+  type SemanticGetResult as MapSemanticGetResult,
+  type ValidateResult,
+  type MissingSuggestion as MapMissingSuggestion,
+  type InferPurposeResult,
+} from './map/index.ts';
+
 // SemanticSet
 export {
   SemanticSet,
