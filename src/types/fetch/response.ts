@@ -74,7 +74,7 @@ export class SemanticResponse {
     llmClient?: ResponseLLMClientInterface,
     llmConfig?: LLMConfig
   ) {
-    this._response = response.clone() as Response;
+    this._response = response.clone();
     this._llmClient = llmClient || { chat };
     this._llmConfig = llmConfig;
   }
@@ -303,7 +303,7 @@ export class SemanticResponse {
    * Get the underlying Response object
    */
   valueOf(): Response {
-    return this._response.clone() as Response;
+    return this._response.clone();
   }
 
   // Expose native Response properties
@@ -355,7 +355,7 @@ export class SemanticResponse {
 
   /** Clone the response */
   clone(): SemanticResponse {
-    return new SemanticResponse(this._response.clone() as Response, this._llmClient, this._llmConfig);
+    return new SemanticResponse(this._response.clone(), this._llmClient, this._llmConfig);
   }
 
   /** Get body as ArrayBuffer */
@@ -370,8 +370,7 @@ export class SemanticResponse {
 
   /** Get body as FormData */
   formData(): Promise<FormData> {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return this._response.clone().formData() as Promise<FormData>;
+    return this._response.clone().formData();
   }
 
   /** Get body as JSON */

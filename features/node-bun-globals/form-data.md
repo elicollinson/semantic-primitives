@@ -163,3 +163,66 @@ interface SemanticFormData extends FormData {
   toObject(targetConvention?: "camelCase" | "snake_case"): Record<string, unknown>;
 }
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+
+The implementation follows the standard type structure:
+
+```
+src/types/form-data/
+├── index.ts              # Re-exports public API
+├── form-data.ts          # Main SemanticFormData class implementation
+├── prompts.ts            # LLM prompt templates for all semantic operations
+└── __tests__/
+    └── form-data.test.ts # Comprehensive tests with mocked LLM
+```
+
+### Design Decisions
+
+1. **Lazy LLM Loading**: The LLM client is loaded lazily via dynamic import to avoid loading provider dependencies (OpenAI, Anthropic, Google SDKs) when using mocked clients in tests.
+
+2. **Interface Implementation**: SemanticFormData implements:
+   - `Semantic<FormData>` - `valueOf()` returns the underlying FormData
+   - `Comparable<FormData>` - `semanticallyEquals()` for semantic comparison
+   - `Explainable` - `explain()` for human-readable descriptions
+
+3. **FormData Delegation**: Native FormData methods (`append`, `delete`, `get`, `getAll`, `has`, `set`, `entries`, `keys`, `values`, `forEach`) are delegated to the underlying FormData instance.
+
+4. **Type Safety**:
+   - Custom `FormDataEntryValue` type alias (string | File) due to bun-types limitations
+   - Type assertions on `entries()` iteration to properly handle File objects
+
+5. **HTMLFormElement Support**: The spec mentions HTMLFormElement support in `from()`, but this is a browser-only feature. The implementation focuses on Node/Bun environments and supports FormData and plain objects.
+
+### Async Operations
+
+All LLM-powered methods are async and return Promises:
+- `semanticallyEquals()`
+- `validate()`
+- `semanticGet()`
+- `inferPurpose()`
+- `detectSensitive()`
+- `suggestMissingFields()`
+- `validateFiles()`
+- `explain()`
+- `toObject()`
+
+### Prompt Design
+
+Prompts are structured with:
+- System prompts defining the assistant's role and capabilities
+- User prompts with clear input formatting and expected JSON output structure
+- Consideration of edge cases and validation scenarios
+
+### Testing
+
+All tests use mocked LLM clients to:
+- Avoid real API calls during testing
+- Ensure deterministic test results
+- Test specific response handling and edge cases
+
+55 comprehensive tests cover all methods and edge cases.

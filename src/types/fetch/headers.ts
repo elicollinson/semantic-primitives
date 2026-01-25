@@ -252,23 +252,47 @@ export class SemanticHeaders {
   }
 
   /** Get an iterator of header entries */
-  entries(): IterableIterator<[string, string]> {
-    return this._headers.entries();
+  *entries(): IterableIterator<[string, string]> {
+    const entries: [string, string][] = [];
+    this._headers.forEach((value, key) => {
+      entries.push([key, value]);
+    });
+    for (const entry of entries) {
+      yield entry;
+    }
   }
 
   /** Get an iterator of header keys */
-  keys(): IterableIterator<string> {
-    return this._headers.keys();
+  *keys(): IterableIterator<string> {
+    const keys: string[] = [];
+    this._headers.forEach((_, key) => {
+      keys.push(key);
+    });
+    for (const key of keys) {
+      yield key;
+    }
   }
 
   /** Get an iterator of header values */
-  values(): IterableIterator<string> {
-    return this._headers.values();
+  *values(): IterableIterator<string> {
+    const values: string[] = [];
+    this._headers.forEach((value) => {
+      values.push(value);
+    });
+    for (const value of values) {
+      yield value;
+    }
   }
 
   /** Make the object iterable */
-  [Symbol.iterator](): IterableIterator<[string, string]> {
-    return this._headers.entries();
+  *[Symbol.iterator](): IterableIterator<[string, string]> {
+    const entries: [string, string][] = [];
+    this._headers.forEach((value, key) => {
+      entries.push([key, value]);
+    });
+    for (const entry of entries) {
+      yield entry;
+    }
   }
 
   /** Convert to plain object */

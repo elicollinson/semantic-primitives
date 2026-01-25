@@ -77,7 +77,7 @@ export class SemanticRequest {
     llmClient?: RequestLLMClientInterface,
     llmConfig?: LLMConfig
   ) {
-    this._request = request.clone() as Request;
+    this._request = request.clone();
     this._llmClient = llmClient || { chat };
     this._llmConfig = llmConfig;
   }
@@ -103,7 +103,7 @@ export class SemanticRequest {
   ): SemanticRequest {
     let request: Request;
     if (input instanceof Request) {
-      request = input.clone() as Request;
+      request = input.clone();
     } else if (input instanceof URL) {
       request = new Request(input.toString(), init);
     } else {
@@ -348,7 +348,7 @@ export class SemanticRequest {
    * Get the underlying Request object
    */
   valueOf(): Request {
-    return this._request.clone() as Request;
+    return this._request.clone();
   }
 
   // Expose native Request properties
@@ -430,7 +430,7 @@ export class SemanticRequest {
 
   /** Clone the request */
   clone(): SemanticRequest {
-    return new SemanticRequest(this._request.clone() as Request, this._llmClient, this._llmConfig);
+    return new SemanticRequest(this._request.clone(), this._llmClient, this._llmConfig);
   }
 
   /** Get body as ArrayBuffer */
@@ -445,8 +445,7 @@ export class SemanticRequest {
 
   /** Get body as FormData */
   formData(): Promise<FormData> {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return this._request.clone().formData() as Promise<FormData>;
+    return this._request.clone().formData();
   }
 
   /** Get body as JSON */

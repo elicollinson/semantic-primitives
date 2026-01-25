@@ -133,3 +133,74 @@ export {
   type HeaderSuggestion,
   type HeadersLLMClientInterface,
 } from './fetch/index.ts';
+
+// SemanticTextCodec
+export {
+  SemanticTextEncoder,
+  SemanticTextDecoder,
+  SemanticTextCodec,
+  type TextCodecLLMClientInterface,
+  type EncodeWithAnalysisResult,
+  type CanEncodeResult,
+  type DetectEncodingResult,
+  type DecodeWithAnalysisResult,
+  type RepairMojibakeResult,
+  type AreEquivalentResult,
+  type TranscodeResult,
+  type EncodingIssue,
+  type ValidateEncodingResult,
+  type SuggestEncodingResult,
+  type ExplainErrorResult,
+} from './text-codec/index.ts';
+
+// SemanticFormData
+export {
+  SemanticFormData,
+  type FormDataSemanticEqualsResult,
+  type FormDataValidateResult,
+  type FormDataSemanticGetResult,
+  type FormDataInferPurposeResult,
+  type FormDataDetectSensitiveResult,
+  type FormDataMissingSuggestion,
+  type FileValidationRules,
+  type FormDataFileValidateResult,
+  type FormDataLLMClientInterface,
+} from './form-data/index.ts';
+
+// SemanticBun
+export {
+  SemanticBun,
+  SemanticBunFileRef,
+  analyzeServerConfig,
+  suggestServerConfig,
+  isCommandSafe,
+  explainCommand,
+  suggestSaferCommand,
+  validateEnv,
+  detectSensitiveEnv,
+  getEnv,
+  type FileTypeResult,
+  type ServerConfigAnalysis,
+  type CommandSafetyResult,
+  type SaferCommandSuggestion,
+  type EnvValidationResult,
+  type SensitiveEnvResult,
+  type BunLLMClientInterface,
+} from './bun/index.ts';
+
+// SemanticBlob and SemanticFile
+export {
+  SemanticBlob,
+  SemanticFile,
+  type BlobSemanticEqualsResult,
+  type ContentTypeResult,
+  type AnalyzeResult,
+  type ValidateForResult,
+  type SafetyResult as BlobSafetyResult,
+  type BlobLLMClientInterface,
+  type FilenameValidationResult,
+  type ExtensionValidationResult,
+  type CategoryResult,
+  type FilenameSuggestionResult,
+  type FileLLMClientInterface,
+} from './blob-file/index.ts';
