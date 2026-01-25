@@ -218,3 +218,72 @@ interface SemanticTextCodec {
   };
 }
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+
+The implementation follows the standard semantic primitives structure:
+
+```
+src/types/text-codec/
+├── index.ts                    # Re-exports all public APIs
+├── text-codec.ts               # Main classes implementation
+├── prompts.ts                  # LLM prompt templates
+└── __tests__/
+    ├── text-codec.test.ts      # Comprehensive tests (66 tests)
+    └── mocks.ts                # Mock responses and factories
+```
+
+### Classes Implemented
+
+1. **SemanticTextEncoder** - Wraps native `TextEncoder` with:
+   - `create()` static factory method
+   - `encode()` - delegates to native encoder
+   - `encodeInto()` - delegates to native encoder
+   - `encodeWithAnalysis()` - synchronous analysis with warnings for non-ASCII, null bytes, BOM, and private use area characters
+   - `canEncode()` - async LLM-powered check for encoding compatibility
+
+2. **SemanticTextDecoder** - Wraps native `TextDecoder` with:
+   - `create()` static factory method supporting `"auto"` for auto-detection
+   - `decode()` - delegates to native decoder
+   - `detectEncoding()` - static async method for LLM-powered encoding detection (with fast BOM detection fallback)
+   - `decodeWithAnalysis()` - async decoding with issue detection and optional auto-detection
+   - `repairMojibake()` - static async method for LLM-powered mojibake repair
+
+3. **SemanticTextCodec** - Static utility class providing:
+   - `areEquivalent()` - async LLM-powered buffer equivalence check (with fast byte comparison fallback)
+   - `transcode()` - async transcoding between encodings
+   - `validateEncoding()` - async validation with fast UTF-8 validation and LLM fallback for other encodings
+   - `suggestEncoding()` - async LLM-powered encoding recommendation
+   - `explainError()` - async LLM-powered error explanation
+
+### Key Design Decisions
+
+1. **Dependency Injection**: All classes accept an optional LLM client for testing purposes. The default uses the codebase's `chat` function.
+
+2. **Fast Paths**: Where possible, synchronous fast paths are used before falling back to LLM:
+   - BOM detection for encoding detection
+   - Byte-identical comparison for equivalence
+   - Native UTF-8 validation before LLM validation
+
+3. **Type Safety**: Uses a custom `BufferSourceType` type alias (`ArrayBuffer | Uint8Array | DataView`) for TypeScript compatibility across different environments.
+
+4. **TextEncoder Limitation**: The native `TextEncoder` only supports UTF-8. The implementation tracks requested encoding for analysis purposes but delegates to the native UTF-8 encoder.
+
+5. **Error Handling**: `TextDecoder` creation with unsupported encodings falls back to UTF-8 to prevent runtime errors.
+
+### Testing
+
+- 66 tests covering all methods across all three classes
+- Mock LLM client factories for deterministic testing
+- Tests cover edge cases: empty inputs, large inputs, special characters, invalid sequences
+
+### Exports
+
+All classes and types are exported through:
+- `src/types/text-codec/index.ts` (module level)
+- `src/types/index.ts` (types collection level)
+- `src/index.ts` (library level)
