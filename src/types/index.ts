@@ -133,3 +133,20 @@ export {
   type SensitiveEnvResult,
   type BunLLMClientInterface,
 } from './bun/index.ts';
+
+// SemanticBlob and SemanticFile
+export {
+  SemanticBlob,
+  SemanticFile,
+  type BlobSemanticEqualsResult,
+  type ContentTypeResult,
+  type AnalyzeResult,
+  type ValidateForResult,
+  type SafetyResult as BlobSafetyResult,
+  type BlobLLMClientInterface,
+  type FilenameValidationResult,
+  type ExtensionValidationResult,
+  type CategoryResult,
+  type FilenameSuggestionResult,
+  type FileLLMClientInterface,
+} from './blob-file/index.ts';
