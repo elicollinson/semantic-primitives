@@ -112,3 +112,16 @@ export {
   type SetValidateResult,
   type InferThemeResult,
 } from './set/index.ts';
+
+// SemanticStream types
+export {
+  SemanticReadableStream,
+  SemanticWritableStream,
+  SemanticTransformStream,
+  type ContentTypeResult,
+  type StreamPatternResult,
+  type StreamSchemaResult,
+  type StreamValidationResult,
+  type WriteStats,
+  type TransformExplanation,
+} from './streams/index.ts';

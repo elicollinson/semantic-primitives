@@ -197,3 +197,69 @@ interface SemanticTransformStream<I, O> extends TransformStream<I, O> {
   explain(): string;
 }
 ```
+
+---
+
+## Implementation Notes
+
+### Implementation Details
+
+The streams implementation is located in `src/types/streams/` with the following structure:
+
+```
+src/types/streams/
+├── streams.ts          # Main implementation with all three stream classes
+├── prompts.ts          # LLM prompt templates for all operations
+├── index.ts            # Public API exports
+└── __tests__/
+    ├── streams.test.ts # Comprehensive unit tests
+    └── mocks.ts        # Mock LLM responses for testing
+```
+
+### Design Decisions
+
+1. **Composition over Inheritance**: The semantic stream classes wrap native streams rather than extending them, avoiding issues with native class extension and maintaining flexibility.
+
+2. **Stream Tee for Sampling**: `detectContentType()`, `explain()`, and `inferSchema()` use `stream.tee()` internally to sample data without consuming the entire stream.
+
+3. **Lazy LLM Calls**: Transform operations (`semanticFilter`, `semanticTransform`, `validate`) create new streams that call the LLM lazily as chunks flow through, enabling efficient processing of large streams.
+
+4. **Stats Tracking via Shared Object**: The `withValidation()` method shares the stats object between the original and validating stream instances using `Object.defineProperty`.
+
+5. **Synchronous `getStats()`**: Changed from async to sync since it only returns cached statistics without any async operations.
+
+6. **Cached Transform Explanation**: `SemanticTransformStream.explain()` caches results to avoid redundant LLM calls.
+
+### Differences from Spec
+
+1. **`explain()` is async**: The `SemanticTransformStream.explain()` returns `Promise<string>` instead of `string` since it requires an LLM call.
+
+2. **Additional Methods**:
+   - `valueOf()`: Returns the underlying native stream
+   - `getReader()` / `getWriter()`: Direct access to stream readers/writers
+   - `getExplanationDetails()`: Returns full explanation details including input/output types
+
+3. **`getStats()` is synchronous**: Returns cached stats immediately rather than as a Promise.
+
+### Testing Approach
+
+- All 43 tests use mocked LLM clients to avoid actual API calls
+- Mock responses defined in `mocks.ts` for consistent testing
+- Integration tests verify stream piping and chaining work correctly
+- Helper functions provided for creating test streams and collecting chunks
+
+### Exported Types
+
+```typescript
+export {
+  SemanticReadableStream,
+  SemanticWritableStream,
+  SemanticTransformStream,
+  type ContentTypeResult,
+  type StreamPatternResult,
+  type StreamSchemaResult,
+  type StreamValidationResult,
+  type WriteStats,
+  type TransformExplanation,
+} from './streams/index.ts';
+```
