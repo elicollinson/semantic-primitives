@@ -112,3 +112,14 @@ export {
   type SetValidateResult,
   type InferThemeResult,
 } from './set/index.ts';
+
+// SemanticEventEmitter
+export {
+  SemanticEventEmitter,
+  type EventClassifyResult,
+  type ValidateHandlersResult,
+  type ValidateEventNameResult,
+  type HandlerSuggestion,
+  type AnalyzeFlowResult,
+  type MonitorOptions,
+} from './event-emitter/index.ts';
