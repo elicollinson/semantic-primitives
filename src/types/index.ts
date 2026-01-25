@@ -67,3 +67,14 @@ export {
   type MissingSuggestion as MapMissingSuggestion,
   type InferPurposeResult,
 } from './map/index.ts';
+
+// SemanticSet
+export {
+  SemanticSet,
+  type SemanticHasResult,
+  type SemanticAddResult,
+  type SetSemanticEqualsResult,
+  type SetSummarizeOptions,
+  type SetValidateResult,
+  type InferThemeResult,
+} from './set/index.ts';
