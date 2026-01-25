@@ -113,6 +113,25 @@ export {
   type InferThemeResult,
 } from './set/index.ts';
 
+// SemanticTextCodec
+export {
+  SemanticTextEncoder,
+  SemanticTextDecoder,
+  SemanticTextCodec,
+  type TextCodecLLMClientInterface,
+  type EncodeWithAnalysisResult,
+  type CanEncodeResult,
+  type DetectEncodingResult,
+  type DecodeWithAnalysisResult,
+  type RepairMojibakeResult,
+  type AreEquivalentResult,
+  type TranscodeResult,
+  type EncodingIssue,
+  type ValidateEncodingResult,
+  type SuggestEncodingResult,
+  type ExplainErrorResult,
+} from './text-codec/index.ts';
+
 // SemanticFormData
 export {
   SemanticFormData,
