@@ -112,3 +112,20 @@ export {
   type SetValidateResult,
   type InferThemeResult,
 } from './set/index.ts';
+
+// SemanticBlob and SemanticFile
+export {
+  SemanticBlob,
+  SemanticFile,
+  type BlobSemanticEqualsResult,
+  type ContentTypeResult,
+  type AnalyzeResult,
+  type ValidateForResult,
+  type SafetyResult as BlobSafetyResult,
+  type BlobLLMClientInterface,
+  type FilenameValidationResult,
+  type ExtensionValidationResult,
+  type CategoryResult,
+  type FilenameSuggestionResult,
+  type FileLLMClientInterface,
+} from './blob-file/index.ts';
