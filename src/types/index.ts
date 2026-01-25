@@ -113,6 +113,17 @@ export {
   type InferThemeResult,
 } from './set/index.ts';
 
+// SemanticEventEmitter
+export {
+  SemanticEventEmitter,
+  type EventClassifyResult,
+  type ValidateHandlersResult,
+  type ValidateEventNameResult,
+  type HandlerSuggestion,
+  type AnalyzeFlowResult,
+  type MonitorOptions,
+} from './event-emitter/index.ts';
+
 // SemanticFetch (Request, Response, Headers)
 export {
   SemanticRequest,
