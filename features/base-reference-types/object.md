@@ -210,3 +210,60 @@ import {
   SensitiveResult
 } from '../../shared/types.ts';
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+
+The implementation follows the standard library structure:
+
+```
+src/types/object/
+├── index.ts          # Re-exports public API
+├── object.ts         # Main SemanticObject class (480+ lines)
+├── prompts.ts        # LLM prompt templates (230+ lines)
+└── __tests__/
+    ├── object.test.ts  # Unit tests (61 test cases)
+    └── mocks.ts        # Mock LLM responses
+```
+
+### Key Implementation Details
+
+1. **Factory Pattern**: Uses a private constructor with static factory methods (`from()`, `empty()`) for consistent object creation.
+
+2. **Exact Match Optimization**: `semanticGet()` first checks for exact key matches synchronously before invoking the LLM, improving performance for common cases.
+
+3. **Empty Object Handling**: All methods handle empty objects gracefully, returning appropriate default values without LLM calls.
+
+4. **Type Preservation**: The class preserves the generic type `T` throughout operations, though `transformKeys()` and `semanticMerge()` may produce objects with different runtime shapes.
+
+5. **Shared Type Compatibility**: All return types align with shared interfaces from `src/shared/types.ts`, ensuring cross-module type compatibility.
+
+6. **Chainable Operations**: Methods like `transformKeys()`, `semanticMerge()`, and `pick()` return new `SemanticObject` instances for method chaining.
+
+### Prompt Design
+
+- System prompt establishes JSON-only response format and semantic analysis guidelines
+- Each operation has a dedicated prompt function with clear instructions
+- Low temperature (0.1) for deterministic operations (validation, type inference)
+- Higher temperature (0.3) for creative operations (summarize, suggestMissingFields)
+
+### Testing Strategy
+
+- 61 unit tests covering all public methods
+- Mock LLM client for deterministic testing without API calls
+- Tests for edge cases: empty objects, non-existent fields, exact matches
+- Prompt structure tests to verify correct data embedding
+
+### Utility Methods
+
+Additional utility methods not in the spec but useful for practical use:
+- `keys()`: Returns all property keys
+- `values()`: Returns all property values
+- `entries()`: Returns key-value pairs
+- `has(key)`: Exact key existence check
+- `get(key)`: Direct property access
+- `toString()`: JSON string representation
+- `toJSON()`: For JSON serialization support
