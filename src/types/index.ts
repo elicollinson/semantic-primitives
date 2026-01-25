@@ -113,6 +113,27 @@ export {
   type InferThemeResult,
 } from './set/index.ts';
 
+// SemanticBun
+export {
+  SemanticBun,
+  SemanticBunFileRef,
+  analyzeServerConfig,
+  suggestServerConfig,
+  isCommandSafe,
+  explainCommand,
+  suggestSaferCommand,
+  validateEnv,
+  detectSensitiveEnv,
+  getEnv,
+  type FileTypeResult,
+  type ServerConfigAnalysis,
+  type CommandSafetyResult,
+  type SaferCommandSuggestion,
+  type EnvValidationResult,
+  type SensitiveEnvResult,
+  type BunLLMClientInterface,
+} from './bun/index.ts';
+
 // SemanticBlob and SemanticFile
 export {
   SemanticBlob,
