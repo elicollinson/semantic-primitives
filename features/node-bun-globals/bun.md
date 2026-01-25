@@ -217,3 +217,63 @@ namespace SemanticBun {
   }
 }
 ```
+
+---
+
+## Implementation Notes
+
+### Architecture
+
+The implementation follows the existing patterns in the codebase:
+
+- **File Structure**: Located at `src/types/bun/` with the standard layout:
+  - `bun.ts` - Main implementation with all classes and functions
+  - `prompts.ts` - LLM prompt templates for semantic operations
+  - `index.ts` - Module exports
+  - `__tests__/bun.test.ts` - Comprehensive test suite with mocked LLM
+
+### Key Design Decisions
+
+1. **Unified Namespace**: All functionality is exposed through the `SemanticBun` namespace object which provides:
+   - `file(path)` - Returns a `SemanticBunFileRef` instance
+   - Direct access to server, shell, and env functions
+
+2. **Dependency Injection**: All functions accept an optional `BunLLMClientInterface` parameter for testing. This follows the pattern used by `SemanticURL` and other types.
+
+3. **File Operations**: `SemanticBunFileRef` wraps Bun's native `Bun.file()` API:
+   - `detectType()` - Uses LLM to analyze file path and content preview
+   - `explain()` - Provides human-readable file content explanation
+   - `validateFor(purpose)` - Purpose-based validation
+   - `text()`, `json()`, `exists()` - Direct Bun.file passthrough methods
+
+4. **Environment Operations**:
+   - `getEnv()` first tries direct lookup, then falls back to semantic matching
+   - Confidence threshold of 0.5 for semantic matches
+
+### Prompts
+
+All prompts follow the established patterns:
+- System prompts define the assistant's role and response format
+- User prompts provide the specific input and expected JSON structure
+- All responses are structured as JSON for reliable parsing
+
+### Testing
+
+The test suite includes 46 tests covering:
+- All public API methods
+- Edge cases (non-existent files, unsafe commands, missing env vars)
+- Integration workflows combining multiple operations
+- Mock LLM responses to avoid real API calls
+
+### Exports
+
+The module is exported from:
+- `src/types/bun/index.ts` - Module-level exports
+- `src/types/index.ts` - Re-exported as part of the types module
+- `src/index.ts` - Available from main package entry point
+
+### Dependencies
+
+- Uses Bun's native APIs: `Bun.file()`, `Bun.env`
+- LLM client from `../../llm/index.ts`
+- Shared types: `ValidateResult` from `../../shared/types.ts`
