@@ -200,3 +200,71 @@ interface SemanticFile extends SemanticBlob, File {
   getLastModified(): SemanticDate;
 }
 ```
+
+---
+
+## Implementation Notes
+
+### Implementation Details
+
+The implementation is located in `src/types/blob-file/` with the following structure:
+
+```
+src/types/blob-file/
+├── index.ts          # Re-exports all public APIs
+├── blob.ts           # SemanticBlob class implementation
+├── file.ts           # SemanticFile class (extends SemanticBlob)
+├── prompts.ts        # LLM prompt templates for semantic operations
+└── __tests__/
+    ├── blob.test.ts  # Tests for SemanticBlob
+    └── file.test.ts  # Tests for SemanticFile
+```
+
+### API Changes from Spec
+
+1. **SemanticFile.fromFile()**: The static factory method on `SemanticFile` is named `fromFile()` instead of `from()` to avoid signature conflicts with the inherited `SemanticBlob.from()` method. Usage:
+   ```typescript
+   const file = SemanticFile.fromFile(inputElement.files[0]);
+   const fileFromBlob = SemanticFile.fromFile(blob, 'filename.txt');
+   ```
+
+2. **validateFilename() is async**: The `validateFilename()` method returns a `Promise` (not synchronous as shown in spec) since it uses LLM for validation.
+
+### TypeScript Configuration
+
+The implementation required adding `"DOM"` to the TypeScript `lib` configuration in `tsconfig.json` to get proper Blob/File type definitions with the `slice()` method:
+
+```json
+{
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM"]
+  }
+}
+```
+
+### LLM Integration
+
+All semantic operations use dependency injection for the LLM client, allowing easy mocking in tests:
+
+```typescript
+// Production usage
+const blob = SemanticBlob.from(data);
+await blob.detectContentType();
+
+// Testing with mock
+const mockClient = { chat: mockFn };
+const blob = new SemanticBlob(data, mockClient);
+```
+
+### Binary Data Handling
+
+The implementation uses hex-encoded previews of binary content (first 16-64 bytes) for LLM analysis. This is sufficient for magic byte detection and basic content analysis while keeping prompts concise.
+
+### Test Coverage
+
+70 unit tests covering:
+- Constructor and factory methods
+- All semantic methods (semanticallyEquals, detectContentType, analyze, validateFor, isSafe, explain, getMetadata)
+- File-specific methods (validateFilename, validateExtension, inferCategory, suggestFilename, getLastModified)
+- Native Blob/File property accessors
+- Inheritance from SemanticBlob to SemanticFile
