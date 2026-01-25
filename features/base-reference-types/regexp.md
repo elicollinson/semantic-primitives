@@ -191,3 +191,65 @@ import {
   InferTypeResult
 } from '../../shared/types.ts';
 ```
+
+---
+
+## Implementation Notes
+
+### Directory Structure
+
+The implementation follows the library's standard structure:
+
+```
+src/types/regexp/
+├── index.ts              # Re-exports public APIs
+├── regexp.ts             # Main SemanticRegExp class
+├── prompts.ts            # LLM prompt templates
+└── __tests__/
+    ├── regexp.test.ts    # Comprehensive test suite (40 tests)
+    └── mocks.ts          # Mock LLM client utilities
+```
+
+### Factory Methods
+
+The class provides three factory methods:
+
+1. **`SemanticRegExp.from(description, options?, client?)`** - Creates regex from natural language using LLM (async)
+2. **`SemanticRegExp.fromRegExp(regex, client?)`** - Wraps an existing RegExp (sync)
+3. **`SemanticRegExp.fromPattern(pattern, flags?, client?)`** - Creates from pattern string (sync)
+
+### Interface Implementation
+
+The class implements the following shared interfaces:
+- `Semantic<RegExp>` - Provides `valueOf()` for unwrapping
+- `Explainable` - Provides `explain()` method
+- `TypeInferable` - Provides `inferType()` method
+
+Note: Some spec-defined method signatures differ from the shared interfaces (e.g., `semanticallyEquals` uses `testStrings?: string[]` instead of `options?: Record<string, unknown>`). These methods are implemented as specified but don't use the shared interface types to maintain API compatibility.
+
+### Async vs Sync Methods
+
+All LLM-powered methods are async and return Promises:
+- `from()`, `semanticallyEquals()`, `explain()`, `testWithExplanation()`
+- `suggestImprovements()`, `generateTestCases()`, `validate()`
+- `toReadable()`, `suggestRelated()`, `inferDataType()`, `inferType()`, `simplify()`
+
+Core RegExp operations are synchronous:
+- `test()`, `exec()`, `valueOf()`, `toString()`
+- `source` and `flags` getters
+
+### Testing
+
+Tests use mock LLM clients that return predefined responses. The mock utilities support:
+- Single response mocking via `createMockLLMClient(response)`
+- Sequential response mocking via `createSequentialMockLLMClient(responses[])`
+- Error simulation via `createFailingMockLLMClient(error)`
+
+### Exported Types
+
+The module exports the following types:
+- `SemanticRegExp` - Main class
+- `FromOptions` - Options for `from()` method
+- `TestWithExplanationResult` - Result of `testWithExplanation()`
+- `SimplifyResult` - Result of `simplify()` (non-null case)
+- Re-exports shared types: `SemanticEqualsResult`, `ImprovementSuggestion`, `RegExpTestCases`, `ValidateResultWithWarnings`, `RelatedSuggestion`, `InferTypeResult`

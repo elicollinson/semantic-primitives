@@ -40,6 +40,19 @@ export {
   type ErrorSeverityLevel,
 } from './error/index.ts';
 
+// SemanticRegExp
+export {
+  SemanticRegExp,
+  type FromOptions as RegExpFromOptions,
+  type TestWithExplanationResult,
+  type SimplifyResult,
+  type ImprovementSuggestion,
+  type RegExpTestCases,
+  type ValidateResultWithWarnings,
+  type RelatedSuggestion,
+  type InferTypeResult,
+} from './regexp/index.ts';
+
 // SemanticURL
 export {
   SemanticURL,
@@ -60,7 +73,7 @@ export {
   type SemanticGetResult as ObjectSemanticGetResult,
   type InferSchemaResult,
   type MissingSuggestion as ObjectMissingSuggestion,
-  type InferTypeResult,
+  type InferTypeResult as ObjectInferTypeResult,
   type SensitiveResult,
 } from './object/index.ts';
 
