@@ -228,3 +228,16 @@ export {
   type StreamValidationItem,
   type WriteStats,
 } from './streams/index.ts';
+
+// SemanticObjectLiteral
+export {
+  SemanticObjectLiteral,
+  type ObjectLiteralValidateResult,
+  type DetectDomainResult,
+  type PropertySearchResult,
+  type MissingPropertySuggestion,
+  type KeyConvention as ObjectLiteralKeyConvention,
+  type SemanticEqualsResultWithMappings as ObjectLiteralSemanticEqualsResult,
+  type InferSchemaResult as ObjectLiteralInferSchemaResult,
+  type SensitiveResult as ObjectLiteralSensitiveResult,
+} from './object-literal/index.ts';
