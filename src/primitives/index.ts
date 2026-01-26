@@ -70,3 +70,14 @@ export {
   type AcceptableResult,
   type CompareToNullResult,
 } from './undefined/index.ts';
+
+// SemanticVoid
+export {
+  SemanticVoid,
+  type VoidFunction,
+  type AnalyzeSideEffectsResult,
+  type ShouldReturnValueResult,
+  type ValidateUsageResult,
+  type CheckErrorHandlingResult,
+  type SuggestSignatureResult,
+} from './void/index.ts';
