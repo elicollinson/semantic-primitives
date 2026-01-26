@@ -215,3 +215,16 @@ export {
   type FilenameSuggestionResult,
   type FileLLMClientInterface,
 } from './blob-file/index.ts';
+
+// SemanticStreams (ReadableStream, WritableStream, TransformStream)
+export {
+  SemanticReadableStream,
+  SemanticWritableStream,
+  SemanticTransformStream,
+  type DetectContentTypeResult,
+  type StreamSemanticEqualsResult,
+  type DetectPatternsResult,
+  type InferSchemaResult as StreamInferSchemaResult,
+  type StreamValidationItem,
+  type WriteStats,
+} from './streams/index.ts';
