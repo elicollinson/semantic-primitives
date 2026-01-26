@@ -228,3 +228,15 @@ export {
   type StreamValidationItem,
   type WriteStats,
 } from './streams/index.ts';
+
+// SemanticRecord
+export {
+  SemanticRecord,
+  type RecordSemanticEqualsResult,
+  type ValidateKeysResult,
+  type ValidateValuesResult,
+  type InvalidEntry,
+  type RecordInferPurposeResult,
+  type SemanticGetResult as RecordSemanticGetResult,
+  type MissingSuggestion as RecordMissingSuggestion,
+} from './record/index.ts';
