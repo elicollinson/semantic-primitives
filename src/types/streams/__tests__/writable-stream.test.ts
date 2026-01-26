@@ -252,6 +252,122 @@ describe('SemanticWritableStream', () => {
 
       expect(chunks.length).toBe(1);
     });
+
+    test('marks original instance as transferred', () => {
+      const { stream } = createCollectingWritableStream<object>();
+      const client = createMockLLMClient(mockWriteValidationValidResponse);
+      const semanticStream = SemanticWritableStream.from(stream, client);
+
+      expect(semanticStream.isTransferred).toBe(false);
+
+      semanticStream.withValidation(['rule']);
+
+      expect(semanticStream.isTransferred).toBe(true);
+    });
+
+    test('throws when writing to transferred instance', async () => {
+      const { stream } = createCollectingWritableStream<object>();
+      const client = createMockLLMClient(mockWriteValidationValidResponse);
+      const semanticStream = SemanticWritableStream.from(stream, client);
+
+      semanticStream.withValidation(['rule']);
+
+      let threw = false;
+      try {
+        await semanticStream.write({ data: 'test' });
+      } catch (error) {
+        threw = true;
+        expect((error as Error).message).toContain('transferred');
+      }
+      expect(threw).toBe(true);
+    });
+
+    test('throws when getting writer from transferred instance', () => {
+      const { stream } = createCollectingWritableStream<object>();
+      const client = createMockLLMClient(mockWriteValidationValidResponse);
+      const semanticStream = SemanticWritableStream.from(stream, client);
+
+      semanticStream.withValidation(['rule']);
+
+      expect(() => semanticStream.getWriter()).toThrow(/transferred/);
+    });
+
+    test('throws when closing transferred instance', async () => {
+      const { stream } = createCollectingWritableStream<object>();
+      const client = createMockLLMClient(mockWriteValidationValidResponse);
+      const semanticStream = SemanticWritableStream.from(stream, client);
+
+      semanticStream.withValidation(['rule']);
+
+      let threw = false;
+      try {
+        await semanticStream.close();
+      } catch (error) {
+        threw = true;
+        expect((error as Error).message).toContain('transferred');
+      }
+      expect(threw).toBe(true);
+    });
+
+    test('throws when calling withValidation on transferred instance', () => {
+      const { stream } = createCollectingWritableStream<object>();
+      const client = createMockLLMClient(mockWriteValidationValidResponse);
+      const semanticStream = SemanticWritableStream.from(stream, client);
+
+      semanticStream.withValidation(['rule1']);
+
+      expect(() => semanticStream.withValidation(['rule2'])).toThrow(/transferred/);
+    });
+
+    test('shares statistics across validation wrappers', async () => {
+      const { stream } = createCollectingWritableStream<object>();
+      const client = createMockLLMClient(mockWriteValidationValidResponse);
+      const base = SemanticWritableStream.from(stream, client);
+
+      const validated = base.withValidation(['rule']);
+
+      await validated.write({ data: 'test1' });
+      await validated.write({ data: 'test2' });
+
+      // Stats should be visible from the wrapper
+      const stats = await validated.getStats();
+      expect(stats.chunksWritten).toBe(2);
+    });
+
+    test('shares statistics across chained validation wrappers', async () => {
+      const { stream } = createCollectingWritableStream<object>();
+      const client = createSequentialMockLLMClient([
+        mockWriteValidationValidResponse,
+        mockWriteValidationValidResponse,
+        mockWriteValidationValidResponse,
+      ]);
+      const base = SemanticWritableStream.from(stream, client);
+
+      const validated1 = base.withValidation(['rule1']);
+      const validated2 = validated1.withValidation(['rule2']);
+
+      await validated2.write({ data: 'test' });
+
+      // Stats should be shared across the chain
+      const stats = await validated2.getStats();
+      expect(stats.chunksWritten).toBe(1);
+    });
+
+    test('prevents writer lock conflicts by using shared writer', async () => {
+      const { stream, chunks } = createCollectingWritableStream<object>();
+      const client = createMockLLMClient(mockWriteValidationValidResponse);
+      const base = SemanticWritableStream.from(stream, client);
+
+      const validated = base.withValidation(['rule']);
+
+      // Write through the validated wrapper - should work
+      await validated.write({ data: 'a' });
+      await validated.write({ data: 'b' });
+
+      validated.releaseLock();
+
+      expect(chunks.length).toBe(2);
+    });
   });
 
   describe('getStats', () => {

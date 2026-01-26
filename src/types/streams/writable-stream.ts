@@ -17,10 +17,22 @@ export interface WriteStats {
 }
 
 /**
+ * Shared state across all wrappers of the same underlying stream.
+ * This ensures statistics are tracked correctly and writer locks are managed.
+ */
+interface SharedStreamState<T> {
+  writer: WritableStreamDefaultWriter<T> | null;
+  stats: WriteStats;
+}
+
+/**
  * SemanticWritableStream - WritableStream with LLM-powered semantic understanding
  *
  * Wraps a native WritableStream and adds intelligent validation
  * and statistics tracking capabilities.
+ *
+ * Note: When using withValidation(), the original instance becomes unusable.
+ * Only the returned wrapper should be used for subsequent operations.
  */
 export class SemanticWritableStream<T> {
   readonly [Symbol.toStringTag] = 'SemanticWritableStream';
@@ -28,19 +40,22 @@ export class SemanticWritableStream<T> {
   private readonly _stream: WritableStream<T>;
   private readonly _client: LLMClient;
   private readonly _validationRules: string[];
-  private _chunksWritten = 0;
-  private _bytesWritten = 0;
-  private _errorCount = 0;
-  private _writer: WritableStreamDefaultWriter<T> | null = null;
+  private readonly _sharedState: SharedStreamState<T>;
+  private _transferred = false;
 
   private constructor(
     stream: WritableStream<T>,
     client?: LLMClient,
-    validationRules: string[] = []
+    validationRules: string[] = [],
+    sharedState?: SharedStreamState<T>
   ) {
     this._stream = stream;
     this._client = client ?? getClient();
     this._validationRules = validationRules;
+    this._sharedState = sharedState ?? {
+      writer: null,
+      stats: { chunksWritten: 0, bytesWritten: 0, errorCount: 0 },
+    };
   }
 
   /**
@@ -71,13 +86,33 @@ export class SemanticWritableStream<T> {
   }
 
   /**
+   * Check if this instance has been transferred to a validation wrapper.
+   */
+  get isTransferred(): boolean {
+    return this._transferred;
+  }
+
+  /**
+   * Throws if this instance has been transferred.
+   */
+  private assertNotTransferred(): void {
+    if (this._transferred) {
+      throw new Error(
+        'This SemanticWritableStream instance has been transferred via withValidation(). ' +
+        'Use the returned wrapper instead.'
+      );
+    }
+  }
+
+  /**
    * Get a writer for the underlying stream.
    */
   getWriter(): WritableStreamDefaultWriter<T> {
-    if (!this._writer) {
-      this._writer = this._stream.getWriter();
+    this.assertNotTransferred();
+    if (!this._sharedState.writer) {
+      this._sharedState.writer = this._stream.getWriter();
     }
-    return this._writer;
+    return this._sharedState.writer;
   }
 
   /**
@@ -86,11 +121,13 @@ export class SemanticWritableStream<T> {
    * @param chunk - Data to write
    */
   async write(chunk: T): Promise<void> {
+    this.assertNotTransferred();
+
     // Validate if rules are set
     if (this._validationRules.length > 0) {
       const isValid = await this.validateChunk(chunk);
       if (!isValid) {
-        this._errorCount++;
+        this._sharedState.stats.errorCount++;
         throw new Error('Chunk failed validation');
       }
     }
@@ -98,10 +135,10 @@ export class SemanticWritableStream<T> {
     try {
       const writer = this.getWriter();
       await writer.write(chunk);
-      this._chunksWritten++;
-      this._bytesWritten += this.getChunkSize(chunk);
+      this._sharedState.stats.chunksWritten++;
+      this._sharedState.stats.bytesWritten += this.getChunkSize(chunk);
     } catch (error) {
-      this._errorCount++;
+      this._sharedState.stats.errorCount++;
       throw error;
     }
   }
@@ -110,6 +147,7 @@ export class SemanticWritableStream<T> {
    * Close the stream.
    */
   async close(): Promise<void> {
+    this.assertNotTransferred();
     const writer = this.getWriter();
     await writer.close();
   }
@@ -118,6 +156,7 @@ export class SemanticWritableStream<T> {
    * Abort the stream.
    */
   async abort(reason?: unknown): Promise<void> {
+    this.assertNotTransferred();
     const writer = this.getWriter();
     await writer.abort(reason);
   }
@@ -126,36 +165,48 @@ export class SemanticWritableStream<T> {
    * Release the writer lock.
    */
   releaseLock(): void {
-    if (this._writer) {
-      this._writer.releaseLock();
-      this._writer = null;
+    if (this._sharedState.writer) {
+      this._sharedState.writer.releaseLock();
+      this._sharedState.writer = null;
     }
   }
 
   /**
    * Create a new SemanticWritableStream with validation rules.
    *
+   * IMPORTANT: After calling this method, the current instance becomes unusable.
+   * Only the returned wrapper should be used for subsequent operations.
+   * Statistics are shared between all wrappers.
+   *
    * @param rules - Validation rules
    * @returns Validating writable stream
    */
   withValidation(rules: string[]): SemanticWritableStream<T> {
+    this.assertNotTransferred();
+
+    // Mark this instance as transferred
+    this._transferred = true;
+
+    // Create new wrapper sharing the same state
     return new SemanticWritableStream(
       this._stream,
       this._client,
-      [...this._validationRules, ...rules]
+      [...this._validationRules, ...rules],
+      this._sharedState
     );
   }
 
   /**
    * Get statistics about written data.
+   * Statistics are shared across all validation wrappers of the same stream.
    *
    * @returns Write statistics
    */
   getStats(): Promise<WriteStats> {
     return Promise.resolve({
-      chunksWritten: this._chunksWritten,
-      bytesWritten: this._bytesWritten,
-      errorCount: this._errorCount,
+      chunksWritten: this._sharedState.stats.chunksWritten,
+      bytesWritten: this._sharedState.stats.bytesWritten,
+      errorCount: this._sharedState.stats.errorCount,
     });
   }
 
