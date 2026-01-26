@@ -228,3 +228,13 @@ export {
   type StreamValidationItem,
   type WriteStats,
 } from './streams/index.ts';
+
+// SemanticConstructable
+export {
+  SemanticConstructable,
+  type Constructor,
+  type ConstructableSemanticEqualsResult,
+  type InstanceShapeResult,
+  type CreateValidatedResult,
+  type DocFormat,
+} from './constructable/index.ts';
