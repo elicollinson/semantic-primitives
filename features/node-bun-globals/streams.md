@@ -197,3 +197,64 @@ interface SemanticTransformStream<I, O> extends TransformStream<I, O> {
   explain(): string;
 }
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+
+```
+src/types/streams/
+├── index.ts                          # Re-exports all stream types
+├── readable-stream.ts                # SemanticReadableStream class
+├── writable-stream.ts                # SemanticWritableStream class
+├── transform-stream.ts               # SemanticTransformStream class
+├── prompts.ts                        # LLM prompt templates
+└── __tests__/
+    ├── mocks.ts                      # Mock LLM clients and responses
+    ├── readable-stream.test.ts       # ReadableStream tests
+    ├── writable-stream.test.ts       # WritableStream tests
+    └── transform-stream.test.ts      # TransformStream tests
+```
+
+### Key Implementation Details
+
+1. **Stream Consumption**: Methods like `summarize()`, `semanticallyEquals()`, and `detectPatterns()` consume the stream. The `detectContentType()`, `explain()`, and `inferSchema()` methods use `tee()` to preserve the stream for subsequent operations.
+
+2. **Wrapper Pattern**: Classes wrap native streams using the static factory `from()` method pattern. Re-wrapping an already-wrapped stream returns the original instance (idempotent).
+
+3. **LLM Integration**: All semantic operations accept an optional `LLMClient` parameter. When not provided, the global singleton from `getClient()` is used.
+
+4. **Error Handling**: All LLM operations have fallback implementations that provide basic functionality when the LLM fails:
+   - `detectContentType`: Uses heuristics to detect JSON, XML, HTML, CSV, or text
+   - `summarize`: Returns a basic line/byte count
+   - `semanticallyEquals`: Falls back to trimmed string comparison
+   - `inferSchema`: Attempts JSON parsing with basic type detection
+   - Filter/Transform: On error, includes items (conservative) or skips items
+
+5. **Validation**: Both `SemanticReadableStream.validate()` and `SemanticWritableStream.withValidation()` support natural language rules. Validation results include the original data, validity status, and list of issues.
+
+6. **Statistics Tracking**: `SemanticWritableStream` tracks chunks written, bytes written, and error count internally.
+
+7. **Transform Stream**: Uses LLM to interpret natural language transformation instructions. Provides both sync `explain()` and async `explainAsync()` methods for describing the transformation.
+
+### Testing
+
+- 82 unit tests covering all methods
+- Tests use mock LLM clients that return predefined responses
+- Tests verify both success paths and error/fallback behavior
+- Stream helper utilities in mocks.ts for creating test streams
+
+### Exported Types
+
+From `src/types/streams/index.ts`:
+- `SemanticReadableStream`
+- `SemanticWritableStream`
+- `SemanticTransformStream`
+- `DetectContentTypeResult`
+- `StreamSemanticEqualsResult`
+- `DetectPatternsResult`
+- `InferSchemaResult`
+- `StreamValidationItem`
+- `WriteStats`
