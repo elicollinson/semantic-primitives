@@ -173,3 +173,55 @@ interface SemanticNever {
 ## Shared Types
 
 The `SemanticNever` interface uses unique result types specific to exhaustiveness checking and dead code analysis. These are not yet available as shared types since they are specific to the `never` type semantics.
+
+---
+
+## Implementation Notes
+
+### Design Decisions
+
+1. **Static-only class**: Since `never` represents values that never occur (the bottom type), `SemanticNever` has no instances and all methods are static. The class uses a private constructor that throws if called. An eslint disable comment is used to acknowledge this intentional design pattern (`@typescript-eslint/no-extraneous-class`).
+
+2. **All methods are async**: Every LLM-powered method is async and returns a Promise. The only exception is `appropriatePatterns()` which returns a static list of common never patterns without LLM involvement.
+
+3. **Optional LLM client injection**: All methods accept an optional `LLMClient` parameter for dependency injection, enabling proper unit testing with mocks.
+
+### File Structure
+
+```
+src/types/never/
+├── index.ts         # Re-exports public API
+├── never.ts         # Main class implementation with all static methods
+├── prompts.ts       # LLM prompt templates for each operation
+└── __tests__/
+    ├── mocks.ts     # Mock utilities and predefined mock responses
+    └── never.test.ts # Unit tests (43 tests, 127 expect calls)
+```
+
+### Exported Types
+
+- `SemanticNever` - Main class with static methods
+- `UnreachabilityType` - Union type for unreachability classification
+- `ExhaustiveResult` - Result of exhaustiveness checking
+- `UnreachabilityResult` - Result of unreachability explanation
+- `DeadCodeResult` - Result of dead code analysis
+- `ExhaustiveHandlerResult` - Suggested assertNever handler code
+- `ValidateExhaustivenessResult` - Result of exhaustiveness validation
+- `ShouldReturnNeverResult` - Result of should-return-never analysis
+- `IntersectionAnalysisResult` - Result of type intersection analysis
+- `NeverPattern` - Structure for appropriate never patterns
+
+### Differences from Spec
+
+1. All methods in the implementation are `async` and return `Promise<T>` whereas the spec shows synchronous signatures. This reflects the actual LLM-powered implementation.
+
+2. The `appropriatePatterns()` method returns a static array and doesn't require LLM invocation, making it synchronous.
+
+3. The `explain()` method returns `Promise<string>` (via LLM) rather than a plain `string`.
+
+### Testing
+
+- 43 unit tests covering all methods and prompts
+- Uses mock LLM clients with predefined responses
+- No actual LLM invocations in tests
+- Tests verify both happy paths and edge cases
