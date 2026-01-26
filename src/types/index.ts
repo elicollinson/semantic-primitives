@@ -228,3 +228,15 @@ export {
   type StreamValidationItem,
   type WriteStats,
 } from './streams/index.ts';
+
+// SemanticUnknown
+export {
+  SemanticUnknown,
+  type BasicType,
+  type UnknownInferTypeResult,
+  type TypeSuggestion,
+  type ValidateShapeResult,
+  type GenerateTypeGuardResult,
+  type MatchesResult,
+  type NarrowToResult,
+} from './unknown/index.ts';

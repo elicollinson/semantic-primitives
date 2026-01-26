@@ -180,3 +180,65 @@ import {
   ConfidenceResult
 } from '../../shared/types.ts';
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+
+The implementation follows the library's standard structure:
+
+```
+src/types/unknown/
+├── index.ts          # Re-exports public API
+├── unknown.ts        # Main SemanticUnknown class
+├── prompts.ts        # LLM prompt templates
+└── __tests__/
+    ├── mocks.ts      # Mock LLM responses for testing
+    └── unknown.test.ts # Unit tests (67 tests)
+```
+
+### Key Implementation Details
+
+1. **Primitive Type Optimization**: For primitive types (string, number, boolean, null, undefined, function), `inferType()` returns immediately without LLM calls, with confidence 1.0.
+
+2. **Direct Property Access**: `safeAccess()` first attempts direct property access for simple property names before falling back to LLM-based semantic path resolution.
+
+3. **Special Handling for Empty Values**: `explain()` provides immediate responses for null/undefined values without LLM calls.
+
+4. **TypeSuggestion Interface**: The `suggestTypes()` method returns an array of `TypeSuggestion` objects with `type`, `confidence`, and optional `reason` fields.
+
+5. **NarrowToResult Union Type**: The `narrowTo<T>()` method returns a discriminated union type for type-safe success/failure handling.
+
+### Interfaces Implemented
+
+- `Semantic<unknown>` - Base semantic wrapper with `valueOf()`
+- `Explainable` - Human-readable explanation via `explain()`
+- `TypeInferable` - Type inference via `inferType()`
+
+### Exported Types
+
+- `SemanticUnknown` - Main class
+- `BasicType` - Union of JavaScript primitive type strings
+- `UnknownInferTypeResult` - Extended type inference result
+- `TypeSuggestion` - Type suggestion with confidence
+- `ValidateShapeResult` - Shape validation result
+- `GenerateTypeGuardResult` - Type guard generation result
+- `MatchesResult` - Semantic match result
+- `NarrowToResult<T>` - Type narrowing result union
+
+### Testing
+
+All 67 unit tests pass with mocked LLM responses. Tests cover:
+- Factory method (`from`)
+- Type inference for all primitive types
+- Type suggestions
+- Shape validation
+- Type guard generation
+- Safe property access
+- Semantic matching
+- Type narrowing
+- Explanation generation
+- Emptiness checking
+- Serialization (`toString`, `toJSON`)
