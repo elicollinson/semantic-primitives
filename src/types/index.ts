@@ -27,6 +27,17 @@ export {
   type ArrayDetectPatternResult,
 } from './array/index.ts';
 
+// SemanticTuple
+export {
+  SemanticTuple,
+  type PositionalMeaningResult,
+  type ValidateRelationshipResult,
+  type ValidateStructureResult,
+  type ToObjectResult,
+  type GetByLabelResult,
+  type DetectPatternResult as TupleDetectPatternResult,
+} from './tuple/index.ts';
+
 // SemanticError
 export {
   SemanticError,
@@ -228,3 +239,116 @@ export {
   type StreamValidationItem,
   type WriteStats,
 } from './streams/index.ts';
+
+// SemanticConstructable
+export {
+  SemanticConstructable,
+  type ConstructableSemanticEqualsResult,
+  type InstanceShapeResult,
+  type CreateValidatedResult,
+  type Constructor,
+  type DetectPatternResult as ConstructableDetectPatternResult,
+  type ImprovementSuggestion as ConstructableImprovementSuggestion,
+} from './constructable/index.ts';
+
+// SemanticObjectLiteral
+export {
+  SemanticObjectLiteral,
+  type ValidateWithRulesResult,
+  type DetectDomainResult,
+  type FindPropertiesResult,
+  type MissingPropertySuggestion,
+  type KeyConvention as ObjectLiteralKeyConvention,
+  type SemanticEqualsResultWithMappings as ObjectLiteralSemanticEqualsResult,
+  type InferSchemaResult as ObjectLiteralInferSchemaResult,
+  type SensitiveResult as ObjectLiteralSensitiveResult,
+} from './object-literal/index.ts';
+
+// SemanticRecord
+export {
+  SemanticRecord,
+  type ValidateKeysResult,
+  type ValidateValuesResult,
+  type RecordInferPurposeResult,
+  type SemanticEqualsResultWithMappings as RecordSemanticEqualsResult,
+  type SemanticGetResult as RecordSemanticGetResult,
+  type MissingSuggestion as RecordMissingSuggestion,
+} from './record/index.ts';
+
+// SemanticAny
+export {
+  SemanticAny,
+  type AnyIntent,
+  type ClassifyIntentResult,
+  type SuggestTypeResult,
+  type AssessRiskResult,
+  type GenerateMigrationResult,
+  type AnyValidateResult,
+  type AnyContext,
+  type MigrationOptions,
+} from './any/index.ts';
+
+// SemanticNever
+export {
+  SemanticNever,
+  type UnreachabilityType,
+  type ExhaustiveResult,
+  type UnreachabilityResult,
+  type DeadCodeResult,
+  type ExhaustiveHandlerResult,
+  type ValidateExhaustivenessResult,
+  type ShouldReturnNeverResult,
+  type IntersectionAnalysisResult,
+  type NeverPattern,
+} from './never/index.ts';
+
+// SemanticUnknown
+export {
+  SemanticUnknown,
+  type UnknownBaseType,
+  type UnknownInferTypeResult,
+  type TypeSuggestion,
+  type ValidateShapeResult,
+  type GenerateTypeGuardResult,
+  type MatchesResult,
+  type NarrowToResult,
+  type UnknownContext,
+} from './unknown/index.ts';
+
+// SemanticVoid
+export {
+  SemanticVoid,
+  type AnalyzeSideEffectsResult,
+  type ShouldReturnValueResult,
+  type ValidateUsageResult,
+  type CheckErrorHandlingResult,
+  type SuggestSignatureResult,
+} from './void/index.ts';
+
+// SemanticFunction
+export {
+  SemanticFunction,
+  type DocFormat,
+  type FunctionTestCase,
+  type SemanticEqualsResult as FunctionSemanticEqualsResult,
+  type ValidateResult as FunctionValidateResult,
+  type InferPurposeResult as FunctionInferPurposeResult,
+  type ImprovementSuggestion as FunctionImprovementSuggestion,
+  type DetectedIssue as FunctionDetectedIssue,
+  type SafetyResult as FunctionSafetyResult,
+} from './function/index.ts';
+
+// SemanticCallable
+export {
+  SemanticCallable,
+  type InferredParameter,
+  type InferSignatureResult,
+  type GenerateTypeDefinitionResult,
+  type CallableTestCase,
+  type SuggestWrapperResult,
+  type SampleCall,
+  type SemanticEqualsResult as CallableSemanticEqualsResult,
+  type ValidateResult as CallableValidateResult,
+  type DetectedIssue as CallableDetectedIssue,
+  type SafetyResult as CallableSafetyResult,
+} from './callable/index.ts';
