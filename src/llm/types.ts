@@ -104,15 +104,15 @@ export function getEnvConfig(): LLMEnvironment {
     provider: (process.env['LLM_PROVIDER'] || 'google') as LLMProvider,
     openai: {
       apiKey: process.env['OPENAI_API_KEY'],
-      model: process.env['OPENAI_MODEL'] || 'gpt-4o-mini',
+      model: process.env['OPENAI_MODEL'] || 'gpt-4.1-nano',
     },
     anthropic: {
       apiKey: process.env['ANTHROPIC_API_KEY'],
-      model: process.env['ANTHROPIC_MODEL'] || 'claude-sonnet-4-20250514',
+      model: process.env['ANTHROPIC_MODEL'] || 'claude-haiku-4-20250514',
     },
     google: {
       apiKey: process.env['GOOGLE_API_KEY'],
-      model: process.env['GOOGLE_MODEL'] || 'gemini-2.0-flash-lite',
+      model: process.env['GOOGLE_MODEL'] || 'gemini-2.5-flash-lite',
     },
     defaults: {
       maxTokens: parseInt(process.env['LLM_MAX_TOKENS'] || '1024', 10),

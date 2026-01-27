@@ -32,9 +32,9 @@ ANTHROPIC_API_KEY=sk-ant-...
 
 ```bash
 # Override the default model for each provider
-GOOGLE_MODEL=gemini-2.0-flash-lite
-OPENAI_MODEL=gpt-4o-mini
-ANTHROPIC_MODEL=claude-sonnet-4-20250514
+GOOGLE_MODEL=gemini-2.5-flash-lite
+OPENAI_MODEL=gpt-4.1-nano
+ANTHROPIC_MODEL=claude-haiku-4-20250514
 ```
 
 ### Default Parameters
@@ -107,7 +107,7 @@ const response = await client.complete({
 
 | Model | Description |
 |-------|-------------|
-| `gemini-2.0-flash-lite` | Fast, efficient (default) |
+| `gemini-2.5-flash-lite` | Fast, efficient (default) |
 | `gemini-2.0-flash` | Balanced performance |
 | `gemini-1.5-pro` | High capability |
 | `gemini-1.5-flash` | Fast, good quality |
@@ -116,7 +116,7 @@ const response = await client.complete({
 
 | Model | Description |
 |-------|-------------|
-| `gpt-4o-mini` | Fast, cost-effective (default) |
+| `gpt-4.1-nano` | Fast, cost-effective (default) |
 | `gpt-4o` | Latest GPT-4 |
 | `gpt-4-turbo` | High capability |
 | `gpt-4` | Original GPT-4 |
@@ -126,7 +126,7 @@ const response = await client.complete({
 
 | Model | Description |
 |-------|-------------|
-| `claude-sonnet-4-20250514` | Balanced (default) |
+| `claude-haiku-4-20250514` | Fast, efficient (default) |
 | `claude-opus-4-20250514` | Highest capability |
 | `claude-3-5-sonnet-20241022` | Previous generation |
 | `claude-3-haiku-20240307` | Fastest |
@@ -138,7 +138,7 @@ Settings are applied in this order (highest priority first):
 1. **Per-request options** - Passed to individual method calls
 2. **Client constructor** - Passed when creating `LLMClient`
 3. **Environment variables** - Set in your environment or `.env`
-4. **Built-in defaults** - Google Gemini 2.0 Flash Lite
+4. **Built-in defaults** - Google Gemini 2.5 Flash Lite
 
 ## Example: Multi-Provider Setup
 
@@ -173,7 +173,7 @@ const response2 = await client.withProvider('anthropic').complete({
 
 ## Cost Optimization Tips
 
-1. **Use smaller models for simple tasks** - `gpt-4o-mini` or `gemini-2.0-flash-lite` are fast and cheap
+1. **Use smaller models for simple tasks** - `gpt-4.1-nano` or `gemini-2.5-flash-lite` are fast and cheap
 2. **Batch similar operations** - Process multiple items together when possible
 3. **Cache results** - Store LLM responses for repeated queries
 4. **Lower max tokens** - Set `maxTokens` to the minimum needed

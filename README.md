@@ -44,15 +44,15 @@ LLM_PROVIDER=google
 
 # OpenAI Configuration
 OPENAI_API_KEY=your-openai-api-key
-OPENAI_MODEL=gpt-4o-mini
+OPENAI_MODEL=gpt-4.1-nano
 
 # Anthropic Configuration
 ANTHROPIC_API_KEY=your-anthropic-api-key
-ANTHROPIC_MODEL=claude-sonnet-4-20250514
+ANTHROPIC_MODEL=claude-haiku-4-20250514
 
 # Google Configuration (default provider)
 GOOGLE_API_KEY=your-google-api-key
-GOOGLE_MODEL=gemini-2.0-flash-lite
+GOOGLE_MODEL=gemini-2.5-flash-lite
 
 # Optional: Default settings
 LLM_MAX_TOKENS=1024
@@ -72,10 +72,10 @@ Google's Gemini models are the default. To configure:
 
 ```bash
 GOOGLE_API_KEY=your-google-api-key
-GOOGLE_MODEL=gemini-2.0-flash-lite  # Default model
+GOOGLE_MODEL=gemini-2.5-flash-lite  # Default model
 ```
 
-Available models: `gemini-2.0-flash-lite`, `gemini-2.0-flash`, `gemini-1.5-pro`, `gemini-1.5-flash`
+Available models: `gemini-2.5-flash-lite`, `gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-1.5-pro`
 
 #### OpenAI
 
@@ -87,10 +87,10 @@ To use OpenAI models:
 ```bash
 LLM_PROVIDER=openai
 OPENAI_API_KEY=your-openai-api-key
-OPENAI_MODEL=gpt-4o-mini  # Default model
+OPENAI_MODEL=gpt-4.1-nano  # Default model
 ```
 
-Available models: `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`, `gpt-4`, `gpt-3.5-turbo`
+Available models: `gpt-4.1`, `gpt-4.1-mini`, `gpt-4.1-nano`, `gpt-4o`, `gpt-4o-mini`
 
 #### Anthropic
 
@@ -102,10 +102,10 @@ To use Anthropic's Claude models:
 ```bash
 LLM_PROVIDER=anthropic
 ANTHROPIC_API_KEY=your-anthropic-api-key
-ANTHROPIC_MODEL=claude-sonnet-4-20250514  # Default model
+ANTHROPIC_MODEL=claude-haiku-4-20250514  # Default model
 ```
 
-Available models: `claude-opus-4-20250514`, `claude-sonnet-4-20250514`, `claude-3-5-sonnet-20241022`, `claude-3-haiku-20240307`
+Available models: `claude-opus-4-20250514`, `claude-sonnet-4-20250514`, `claude-haiku-4-20250514`, `claude-3-5-sonnet-20241022`
 
 ### Programmatic Configuration
 
@@ -271,7 +271,7 @@ import { OpenAIProvider, AnthropicProvider, GoogleProvider } from 'semantic-prim
 
 const openai = new OpenAIProvider('sk-...', 'gpt-4o');
 const anthropic = new AnthropicProvider('sk-ant-...', 'claude-opus-4-20250514');
-const google = new GoogleProvider('AIza...', 'gemini-2.0-flash-lite');
+const google = new GoogleProvider('AIza...', 'gemini-2.5-flash-lite');
 ```
 
 ### Types
@@ -440,9 +440,9 @@ semantic-primitives/
 
 | Provider | Default Model | Other Models | Status |
 |----------|---------------|--------------|--------|
-| Google (default) | gemini-2.0-flash-lite | Gemini 2.0 Flash, Gemini 1.5 Pro, etc. | Supported |
-| OpenAI | gpt-4o-mini | GPT-4o, GPT-4, etc. | Supported |
-| Anthropic | claude-sonnet-4-20250514 | Claude Opus 4, etc. | Supported |
+| Google (default) | gemini-2.5-flash-lite | Gemini 2.5 Flash, Gemini 2.0 Flash, etc. | Supported |
+| OpenAI | gpt-4.1-nano | GPT-4.1, GPT-4.1-mini, etc. | Supported |
+| Anthropic | claude-haiku-4-20250514 | Claude Opus 4, Claude Sonnet 4, etc. | Supported |
 
 ## License
 
