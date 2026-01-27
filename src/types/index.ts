@@ -242,3 +242,15 @@ export {
   type SemanticEqualsResultWithReason as TupleSemanticEqualsResult,
   type DetectPatternResult as TupleDetectPatternResult,
 } from './tuple/index.ts';
+
+// SemanticRecord
+export {
+  SemanticRecord,
+  type RecordSemanticEqualsResult,
+  type ValidateKeysResult,
+  type ValidateValuesResult,
+  type InvalidEntry,
+  type RecordInferPurposeResult,
+  type SemanticGetResult as RecordSemanticGetResult,
+  type MissingSuggestion as RecordMissingSuggestion,
+} from './record/index.ts';
