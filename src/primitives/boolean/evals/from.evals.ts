@@ -3,7 +3,7 @@
  * Tests the ability to parse natural language into boolean values
  */
 
-import type { EvalDataset } from '../../../../evaluation/types.ts';
+import type { EvalDataset } from '../../../shared/eval-types.ts';
 
 export const dataset: EvalDataset = {
   name: 'SemanticBoolean.from',

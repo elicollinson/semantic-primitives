@@ -3,7 +3,7 @@
  * Tests semantic comparison of strings for meaning equivalence
  */
 
-import type { EvalDataset } from '../../../../evaluation/types.ts';
+import type { EvalDataset } from '../../../shared/eval-types.ts';
 
 export const dataset: EvalDataset = {
   name: 'SemanticString.semanticallyEquals',

@@ -212,7 +212,7 @@ Each `.evals.ts` file must export an `EvalDataset` with the following structure:
 ```typescript
 // src/primitives/<type>/evals/<method>.evals.ts
 
-import type { EvalDataset } from '../../../../evaluation/types.ts';
+import type { EvalDataset } from '../../../shared/eval-types.ts';
 
 export const dataset: EvalDataset = {
   // REQUIRED: Dataset metadata
@@ -324,7 +324,7 @@ Each method should have test cases covering:
 
 2. Create dataset file `<method>.evals.ts`:
    ```typescript
-   import type { EvalDataset } from '../../../../evaluation/types.ts';
+   import type { EvalDataset } from '../../../shared/eval-types.ts';
 
    export const dataset: EvalDataset = {
      name: 'Semantic<Type>.<method>',
