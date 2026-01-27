@@ -196,3 +196,72 @@ import {
   SafetyResult
 } from '../../shared/types.ts';
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+
+The implementation follows the library's established directory organization:
+
+```
+src/types/callable/
+├── index.ts          # Re-exports public API
+├── callable.ts       # Main SemanticCallable class
+├── prompts.ts        # LLM prompt templates
+└── __tests__/
+    ├── callable.test.ts  # Unit tests (43 tests)
+    └── mocks.ts          # Mock utilities for testing
+```
+
+### Key Implementation Details
+
+1. **Function Source Analysis**: Uses `Function.prototype.toString()` to get the function source code for LLM analysis. The source is cached after first access for performance.
+
+2. **Type Safety**: The class uses TypeScript generics (`SemanticCallable<T extends (...args: never[]) => unknown>`) to preserve type information for parameters and return values.
+
+3. **All LLM Methods Are Async**: Unlike the spec which shows synchronous signatures, all LLM-powered methods (`semanticallyEquals`, `explain`, `inferSignature`, etc.) are implemented as async methods returning Promises. This is consistent with other semantic types in the library.
+
+4. **Additional Utility Methods**: The implementation includes helper methods not in the spec:
+   - `getDescription()`: Returns the optional description provided at creation
+   - `getName()`: Returns the function's name (or 'anonymous' for unnamed functions)
+   - `getArity()`: Returns the number of expected parameters
+
+5. **Custom Types**: The implementation defines additional types:
+   - `InferredSignature`: Result type for `inferSignature()`
+   - `WrapperSuggestion`: Result type for `suggestWrapper()`
+   - `CallableTestCase<TInput, TOutput>`: Typed test case for `generateTests()`
+
+6. **suggestWrapper() Integration**: The `suggestWrapper()` method first calls `detectIssues()` internally to provide context for the wrapper suggestion.
+
+7. **Re-wrapping Prevention**: If `SemanticCallable.from()` is called with an existing SemanticCallable, it returns the same instance.
+
+### Shared Types Usage
+
+The implementation uses the following shared types from `src/shared/types.ts`:
+- `SemanticEqualsResult` for `semanticallyEquals()`
+- `ValidateResult` for `validateArgs()`
+- `DetectedIssue` for `detectIssues()`
+- `SafetyResult` for `isSafeToCall()`
+
+Note: `GeneratedTestCase` was not used as a custom `CallableTestCase` type was defined to provide better TypeScript inference.
+
+### Export Configuration
+
+The module is exported from:
+- `src/types/callable/index.ts` (module level)
+- `src/types/index.ts` (types collection)
+- `src/index.ts` (library root)
+
+### Test Coverage
+
+43 unit tests covering:
+- Factory method (`from`)
+- Core methods (`call`, `valueOf`, `getName`, `getArity`, `getDescription`)
+- Semantic comparison (`semanticallyEquals`)
+- LLM operations (`explain`, `inferSignature`, `generateTypeDefinition`)
+- Validation (`validateArgs`, `isSafeToCall`)
+- Code generation (`generateTests`, `suggestWrapper`)
+- Issue detection (`detectIssues`)
+- Prompt template tests

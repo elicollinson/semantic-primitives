@@ -208,3 +208,60 @@ import {
   SensitiveResult
 } from '../../shared/types.ts';
 ```
+
+---
+
+## Implementation Notes
+
+### File Structure
+
+The implementation follows the standard library structure:
+
+```
+src/types/object-literal/
+├── index.ts              # Public API exports
+├── object-literal.ts     # Main class implementation
+├── prompts.ts            # LLM prompt templates
+└── __tests__/
+    ├── object-literal.test.ts  # Unit tests (65 tests)
+    └── mocks.ts                # Mock LLM client utilities
+```
+
+### Key Implementation Details
+
+1. **Factory Method**: Uses `SemanticObjectLiteral.from(obj, context?, client?)` static method for instance creation. The constructor is private to enforce immutability.
+
+2. **Immutability**: The internal data is copied on construction and `valueOf()` returns a copy to prevent external mutation.
+
+3. **LLM Client Injection**: All LLM operations use a pluggable `LLMClient` interface, with a default obtained via `getClient()`. This enables testing with mock clients.
+
+4. **Empty Object Handling**: All methods that operate on object data have special handling for empty objects, returning sensible defaults without LLM calls.
+
+5. **Nested Property Support**: The `isSensitive(propertyPath)` method supports dot-notation paths for checking nested properties (e.g., `"personal.ssn"`).
+
+6. **Context Preservation**: The optional `context` parameter provided at construction is preserved and accessible via `getContext()`. It can be used to provide additional semantic hints for LLM operations.
+
+### Exported Types
+
+- `SemanticObjectLiteral` - Main class
+- `ObjectLiteralValidateResult` - Result of `validateWithRules()`
+- `DetectDomainResult` - Result of `detectDomain()`
+- `PropertySearchResult` - Result items from `findProperties()`
+- `MissingPropertySuggestion` - Result items from `suggestMissingProperties()`
+- `KeyConvention` - Type alias for key naming conventions
+
+### Re-exported from Shared Types
+
+- `SemanticEqualsResultWithMappings` - Used by `semanticallyEquals()`
+- `InferSchemaResult` - Used by `inferSchema()`
+- `SensitiveResult` - Used by `isSensitive()`
+
+### Test Coverage
+
+All 65 tests pass with comprehensive coverage of:
+- Factory methods and immutability
+- All semantic operations with mock LLM responses
+- Edge cases (empty objects, missing properties, nested paths)
+- Utility methods (keys, values, entries, has, get)
+- JSON serialization (toString, toJSON)
+- Prompt generation verification

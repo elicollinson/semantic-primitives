@@ -177,3 +177,40 @@ Import shared types:
 ```typescript
 import { AppropriateResult } from '../../shared/types.ts';
 ```
+
+---
+
+## Implementation Notes
+
+### Location
+- Implementation: `src/primitives/void/`
+- Main class: `src/primitives/void/void.ts`
+- Prompts: `src/primitives/void/prompts.ts`
+- Tests: `src/primitives/void/__tests__/`
+
+### Design Decisions
+
+1. **Static-only class**: `SemanticVoid` uses only static methods since void cannot be instantiated as a value. This mirrors patterns like `Math` or `JSON` in JavaScript. An ESLint disable comment is used for the `@typescript-eslint/no-extraneous-class` rule.
+
+2. **Function type**: The `VoidFunction` type alias uses `(...args: any[]) => void` to allow flexible function signatures to be passed for analysis. This is necessary because `unknown[]` is too restrictive for contravariant function parameters.
+
+3. **Function source analysis**: All methods that analyze functions use `fn.toString()` to extract the function's source code for LLM analysis. This works for most JavaScript functions but may not work correctly for native/built-in functions.
+
+4. **appropriatePatterns()**: This is the only synchronous method as it returns a static list of common void patterns without requiring LLM analysis.
+
+5. **Shared types**: Uses `AppropriateResult` from shared types for `isAppropriateFor()`. The `ValidateUsageResult` extends the pattern with an optional `suggestion` field.
+
+### Exported Types
+- `SemanticVoid` - Main class with static methods
+- `VoidFunction` - Type alias for void-returning functions
+- `AnalyzeSideEffectsResult` - Result of side effect analysis
+- `ShouldReturnValueResult` - Result of return value recommendation
+- `ValidateUsageResult` - Result of usage validation
+- `CheckErrorHandlingResult` - Result of error handling check
+- `SuggestSignatureResult` - Result of signature suggestions
+- `AppropriateResult` - Re-exported from shared types
+
+### Test Coverage
+- 37 unit tests covering all 8 methods
+- Tests use mocked LLM clients for deterministic results
+- Includes tests for prompts to verify they contain expected content

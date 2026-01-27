@@ -242,3 +242,74 @@ export {
   type IntersectionAnalysisResult,
   type NeverPattern,
 } from './never/index.ts';
+
+// SemanticUnknown
+export {
+  SemanticUnknown,
+  type BasicType,
+  type UnknownInferTypeResult,
+  type TypeSuggestion,
+  type ValidateShapeResult,
+  type GenerateTypeGuardResult,
+  type MatchesResult,
+  type NarrowToResult,
+} from './unknown/index.ts';
+
+// SemanticObjectLiteral
+export {
+  SemanticObjectLiteral,
+  type ObjectLiteralValidateResult,
+  type DetectDomainResult,
+  type PropertySearchResult,
+  type MissingPropertySuggestion,
+  type KeyConvention as ObjectLiteralKeyConvention,
+  type SemanticEqualsResultWithMappings as ObjectLiteralSemanticEqualsResult,
+  type InferSchemaResult as ObjectLiteralInferSchemaResult,
+  type SensitiveResult as ObjectLiteralSensitiveResult,
+} from './object-literal/index.ts';
+
+// SemanticCallable
+export {
+  SemanticCallable,
+  type InferredSignature,
+  type WrapperSuggestion,
+  type CallableTestCase,
+  type DetectedIssue,
+  type SafetyResult as CallableSafetyResult,
+} from './callable/index.ts';
+
+// SemanticConstructable
+export {
+  SemanticConstructable,
+  type Constructor,
+  type ConstructableSemanticEqualsResult,
+  type InstanceShapeResult,
+  type CreateValidatedResult,
+  type DocFormat,
+} from './constructable/index.ts';
+
+// SemanticTuple
+export {
+  SemanticTuple,
+  type PositionalMeaning,
+  type InferPositionalMeaningResult,
+  type ValidateRelationshipResult,
+  type ToObjectResult,
+  type GetByLabelResult,
+  type StructureIssue,
+  type ValidateStructureResult,
+  type SemanticEqualsResultWithReason as TupleSemanticEqualsResult,
+  type DetectPatternResult as TupleDetectPatternResult,
+} from './tuple/index.ts';
+
+// SemanticRecord
+export {
+  SemanticRecord,
+  type RecordSemanticEqualsResult,
+  type ValidateKeysResult,
+  type ValidateValuesResult,
+  type InvalidEntry,
+  type RecordInferPurposeResult,
+  type SemanticGetResult as RecordSemanticGetResult,
+  type MissingSuggestion as RecordMissingSuggestion,
+} from './record/index.ts';

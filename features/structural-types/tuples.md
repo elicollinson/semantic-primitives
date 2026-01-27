@@ -178,3 +178,71 @@ import {
   DetectPatternResult
 } from '../../shared/types.ts';
 ```
+
+---
+
+## Implementation Notes
+
+### Directory Structure
+
+The implementation follows the standard library structure:
+
+```
+src/types/tuple/
+├── index.ts           # Re-exports public API
+├── tuple.ts           # Main SemanticTuple class
+├── prompts.ts         # LLM prompt templates
+└── __tests__/
+    ├── tuple.test.ts  # 83 unit tests
+    └── mocks.ts       # Mock LLM client and responses
+```
+
+### Additional Types Defined
+
+Beyond the spec requirements, the implementation defines:
+
+- `PositionalMeaning` - Single position meaning with confidence
+- `InferPositionalMeaningResult` - Result with positions record and overall confidence
+- `ValidateRelationshipResult` - Validation result with violations array
+- `ToObjectResult` - Object conversion result with labels used and confidence
+- `GetByLabelResult<T>` - Label lookup result with matched position and confidence
+- `StructureIssue` - Single structure validation issue
+- `ValidateStructureResult` - Structure validation result with issues array
+
+### Key Implementation Details
+
+1. **Label Support**: Tuples can be created with optional position labels that enable:
+   - Direct `toObject()` conversion without LLM inference
+   - Exact match for `getByLabel()` before falling back to semantic matching
+   - Context for LLM operations
+
+2. **Immutability**: Internal arrays are copied on construction and on `valueOf()` to prevent external mutation.
+
+3. **Empty Tuple Handling**: All methods handle empty tuples gracefully:
+   - `inferPositionalMeaning()` returns `{ positions: {}, overallConfidence: 1.0 }`
+   - `validateRelationship()` and `validateStructure()` with empty rules/types return valid
+   - `detectPattern()` returns `{ pattern: 'empty tuple', confidence: 1.0 }`
+   - `explain()` returns `'Empty tuple with no elements.'`
+
+4. **Standard Array Methods**: The class provides `map`, `forEach`, `some`, `every`, `reduce`, and iterator support while preserving labels through `map`.
+
+5. **Pattern Detection**: Prompts include common tuple patterns:
+   - Geographic coordinates (lat/lng, 3D)
+   - Color values (RGB, RGBA, HSL)
+   - Ranges/intervals (start/end, min/max)
+   - Date/time components
+   - HTTP status codes
+   - Semantic versions
+   - Key-value pairs
+
+6. **Type Safety**: Uses TypeScript generics `<T extends unknown[]>` to preserve tuple type information through operations.
+
+### Test Coverage
+
+83 unit tests cover:
+- Factory methods (`from`, `empty`)
+- Core accessors (`valueOf`, `length`, `at`, `getLabels`)
+- All semantic methods with mocked LLM responses
+- Edge cases (empty tuples, missing labels, no matches)
+- Standard array method behavior
+- Prompt generation verification
