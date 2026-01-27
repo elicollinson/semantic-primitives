@@ -8,7 +8,7 @@ describe('OpenAIProvider', () => {
 
   beforeEach(() => {
     process.env['OPENAI_API_KEY'] = 'sk-test-key';
-    process.env['OPENAI_MODEL'] = 'gpt-4o-mini';
+    process.env['OPENAI_MODEL'] = 'gpt-4.1-nano';
   });
 
   afterEach(() => {
@@ -47,7 +47,7 @@ describe('AnthropicProvider', () => {
 
   beforeEach(() => {
     process.env['ANTHROPIC_API_KEY'] = 'sk-test-key';
-    process.env['ANTHROPIC_MODEL'] = 'claude-sonnet-4-20250514';
+    process.env['ANTHROPIC_MODEL'] = 'claude-haiku-4-20250514';
   });
 
   afterEach(() => {

@@ -26,9 +26,9 @@ describe('getEnvConfig', () => {
     const config = getEnvConfig();
 
     expect(config.provider).toBe('google');
-    expect(config.openai.model).toBe('gpt-4o-mini');
-    expect(config.anthropic.model).toBe('claude-sonnet-4-20250514');
-    expect(config.google.model).toBe('gemini-2.0-flash-lite');
+    expect(config.openai.model).toBe('gpt-4.1-nano');
+    expect(config.anthropic.model).toBe('claude-haiku-4-20250514');
+    expect(config.google.model).toBe('gemini-2.5-flash-lite');
     expect(config.defaults.maxTokens).toBe(1024);
     expect(config.defaults.temperature).toBe(0.7);
   });

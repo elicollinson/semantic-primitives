@@ -29,9 +29,9 @@ console.log(response.content);
 
 | Provider | Default Model | Environment Variable |
 |----------|--------------|---------------------|
-| Google Gemini | `gemini-2.0-flash-lite` | `GOOGLE_API_KEY` |
-| OpenAI | `gpt-4o-mini` | `OPENAI_API_KEY` |
-| Anthropic Claude | `claude-sonnet-4-20250514` | `ANTHROPIC_API_KEY` |
+| Google Gemini | `gemini-2.5-flash-lite` | `GOOGLE_API_KEY` |
+| OpenAI | `gpt-4.1-nano` | `OPENAI_API_KEY` |
+| Anthropic Claude | `claude-haiku-4-20250514` | `ANTHROPIC_API_KEY` |
 
 ## Creating a Client
 
@@ -179,7 +179,7 @@ const client = new LLMClient({
 // Available models
 await client.complete({
   prompt: 'Hello',
-  model: 'gemini-2.0-flash-lite'  // Fast, cheap
+  model: 'gemini-2.5-flash-lite'  // Fast, cheap
   // or: 'gemini-2.0-flash'       // Balanced
   // or: 'gemini-1.5-pro'         // High capability
 });
@@ -196,7 +196,7 @@ const client = new LLMClient({
 // Available models
 await client.complete({
   prompt: 'Hello',
-  model: 'gpt-4o-mini'    // Fast, cheap
+  model: 'gpt-4.1-nano'    // Fast, cheap
   // or: 'gpt-4o'         // Latest
   // or: 'gpt-4-turbo'    // High capability
 });
@@ -213,7 +213,7 @@ const client = new LLMClient({
 // Available models
 await client.complete({
   prompt: 'Hello',
-  model: 'claude-sonnet-4-20250514'    // Balanced
+  model: 'claude-haiku-4-20250514'    // Fast, efficient
   // or: 'claude-opus-4-20250514'      // Highest capability
   // or: 'claude-3-haiku-20240307'     // Fastest
 });
@@ -261,7 +261,7 @@ try {
 // For simple tasks, use smaller/faster models
 await client.complete({
   prompt: 'Classify: complaint or question?',
-  model: 'gpt-4o-mini',  // Fast, cheap
+  model: 'gpt-4.1-nano',  // Fast, cheap
   maxTokens: 10
 });
 
