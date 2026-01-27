@@ -203,7 +203,48 @@ bun run evaluation/runner.ts --difficulty easy,medium
 bun run evaluation/runner.ts --verbose
 bun run evaluation/runner.ts --json
 bun run evaluation/runner.ts --save --output results/run.json
+
+# No-judge mode (raw results for external review)
+bun run evaluation/runner.ts --no-judge
+bun run evaluation/runner.ts --no-judge --save --output results/raw-results.json
+bun run evaluation/runner.ts --no-judge --json
 ```
+
+### No-Judge Mode
+
+The `--no-judge` flag runs evaluations without the LLM judge, producing raw input/output pairs for external review (e.g., by a code agent or human reviewer).
+
+**Output format:**
+```typescript
+interface RawEvalOutput {
+  timestamp: string;
+  config: { runs: number; type?: string; method?: string };
+  totalCases: number;
+  results: RawEvalResult[];
+}
+
+interface RawEvalResult {
+  caseId: string;
+  description: string;
+  targetClass: string;
+  targetMethod: string;
+  input: { value: unknown; args?: unknown[]; options?: Record<string, unknown> };
+  expected: Record<string, unknown>;
+  actual: unknown;           // The actual output from the semantic operation
+  criteria: string[];        // Criteria for manual/external evaluation
+  structuralMatch: boolean;  // Whether actual matches expected structure
+  latencyMs: number;
+  error?: string;
+  tags?: string[];
+  difficulty?: string;
+}
+```
+
+**Use cases:**
+- Review results with a code agent or external LLM
+- Human review of prompt outputs
+- Debugging specific test cases
+- Cost reduction when LLM judge is not needed
 
 ### Evaluation Data File Constraints
 
@@ -353,6 +394,7 @@ Default configuration in `evaluation/config.ts`:
 | `concurrency` | 5 | Parallel case execution |
 | `timeoutMs` | 30000 | Timeout per case |
 | `judgeProvider` | anthropic | LLM for judging |
+| `--no-judge` | false | Skip LLM judge, output raw results |
 
 ### CI/CD Integration
 

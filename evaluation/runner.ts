@@ -14,6 +14,7 @@
  *   --tags <list>        Only include cases with these tags (comma-separated)
  *   --exclude-tags <list> Exclude cases with these tags (comma-separated)
  *   --difficulty <list>  Only include these difficulties (easy,medium,hard)
+ *   --no-judge           Skip LLM judge, output raw results for external review
  *   --json               Output JSON format
  *   --verbose            Verbose output
  *   --save               Save results to file
@@ -46,6 +47,43 @@ import {
 import { printReport, toJSON } from './reporter.ts';
 
 /**
+ * Raw result for no-judge mode - suitable for external review
+ */
+interface RawEvalResult {
+  caseId: string;
+  description: string;
+  targetClass: string;
+  targetMethod: string;
+  input: {
+    value: unknown;
+    args?: unknown[];
+    options?: Record<string, unknown>;
+  };
+  expected: Record<string, unknown>;
+  actual: unknown;
+  criteria: string[];
+  structuralMatch: boolean;
+  latencyMs: number;
+  error?: string;
+  tags?: string[];
+  difficulty?: string;
+}
+
+/**
+ * Raw results output for no-judge mode
+ */
+interface RawEvalOutput {
+  timestamp: string;
+  config: {
+    runs: number;
+    type?: string;
+    method?: string;
+  };
+  totalCases: number;
+  results: RawEvalResult[];
+}
+
+/**
  * Parse command line arguments
  */
 function parseArgs(): Partial<EvalConfig> & {
@@ -54,6 +92,7 @@ function parseArgs(): Partial<EvalConfig> & {
   json?: boolean;
   help?: boolean;
   output?: string;
+  noJudge?: boolean;
 } {
   const args = process.argv.slice(2);
   const config: ReturnType<typeof parseArgs> = {};
@@ -86,6 +125,9 @@ function parseArgs(): Partial<EvalConfig> & {
       case '--difficulty':
         config.difficulties = nextArg.split(',').map((d) => d.trim()) as Difficulty[];
         i++;
+        break;
+      case '--no-judge':
+        config.noJudge = true;
         break;
       case '--json':
         config.json = true;
@@ -127,6 +169,7 @@ Options:
   --tags <list>         Only include cases with these tags (comma-separated)
   --exclude-tags <list> Exclude cases with these tags (comma-separated)
   --difficulty <list>   Only include these difficulties (easy,medium,hard)
+  --no-judge            Skip LLM judge, output raw results for external review
   --json                Output JSON format
   --verbose             Verbose output
   --save                Save results to file
@@ -138,6 +181,9 @@ Examples:
   bun run evaluation/runner.ts --type SemanticString --method semanticallyEquals
   bun run evaluation/runner.ts --tags synonyms,basic --verbose
   bun run evaluation/runner.ts --json --save --output results/run.json
+
+  # No-judge mode for external review:
+  bun run evaluation/runner.ts --no-judge --save --output results/raw-results.json
 `);
 }
 
@@ -259,7 +305,188 @@ async function loadSemanticClass(
 }
 
 /**
- * Run a single evaluation case
+ * Execute a single case and return the actual output (no judging)
+ */
+async function executeCase(
+  evalCase: EvalCase,
+  dataset: EvalDataset
+): Promise<{ output: unknown; latencyMs: number; error?: string }> {
+  const startTime = performance.now();
+
+  try {
+    const SemanticClass = await loadSemanticClass(dataset.targetClass);
+    let instance: unknown;
+    const factoryMethod = dataset.factoryMethod || 'from';
+
+    if (dataset.isStaticMethod) {
+      const method = (SemanticClass as Record<string, unknown>)[
+        dataset.targetMethod
+      ] as (...args: unknown[]) => unknown | Promise<unknown>;
+
+      if (!method) {
+        throw new Error(
+          `Static method ${dataset.targetMethod} not found on ${dataset.targetClass}`
+        );
+      }
+
+      const methodArgs = [evalCase.input.value, ...(evalCase.input.args || [])];
+      if (evalCase.input.options) {
+        methodArgs.push(evalCase.input.options);
+      }
+
+      const result = method.apply(SemanticClass, methodArgs);
+      instance = result instanceof Promise ? await result : result;
+    } else {
+      const factory = (SemanticClass as Record<string, unknown>)[factoryMethod] as (
+        ...args: unknown[]
+      ) => unknown | Promise<unknown>;
+
+      if (!factory) {
+        throw new Error(
+          `Factory method ${factoryMethod} not found on ${dataset.targetClass}`
+        );
+      }
+
+      const factoryArgs = [evalCase.input.value];
+      const factoryResult = factory.apply(SemanticClass, factoryArgs);
+      instance =
+        dataset.factoryAsync !== false && factoryResult instanceof Promise
+          ? await factoryResult
+          : factoryResult;
+
+      const method = (instance as Record<string, unknown>)[dataset.targetMethod];
+      if (typeof method !== 'function') {
+        throw new Error(
+          `Method ${dataset.targetMethod} not found on ${dataset.targetClass} instance`
+        );
+      }
+
+      const methodArgs = evalCase.input.args || [];
+      if (evalCase.input.options) {
+        methodArgs.push(evalCase.input.options);
+      }
+
+      const methodResult = method.apply(instance, methodArgs);
+      instance = methodResult instanceof Promise ? await methodResult : methodResult;
+    }
+
+    return {
+      output: instance,
+      latencyMs: performance.now() - startTime,
+    };
+  } catch (error) {
+    return {
+      output: null,
+      latencyMs: performance.now() - startTime,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * Run in no-judge mode - collect raw results for external review
+ */
+async function runNoJudgeMode(
+  discovered: DiscoveredDataset[],
+  config: EvalConfig,
+  args: ReturnType<typeof parseArgs>
+): Promise<RawEvalOutput> {
+  const results: RawEvalResult[] = [];
+
+  for (const disc of discovered) {
+    const { dataset } = disc;
+    const filteredCases = filterCases(dataset.cases, config);
+
+    if (config.verbose) {
+      console.log(`\nProcessing: ${dataset.name} (${filteredCases.length} cases)`);
+    }
+
+    for (let i = 0; i < filteredCases.length; i++) {
+      const evalCase = filteredCases[i];
+
+      // Run the case (possibly multiple times)
+      for (let run = 0; run < config.runs; run++) {
+        const { output, latencyMs, error } = await executeCase(evalCase, dataset);
+
+        const structuralMatch = error
+          ? false
+          : checkStructuralMatch(output, evalCase.expected);
+
+        results.push({
+          caseId: config.runs > 1 ? `${evalCase.id}#${run + 1}` : evalCase.id,
+          description: evalCase.description,
+          targetClass: dataset.targetClass,
+          targetMethod: dataset.targetMethod,
+          input: evalCase.input,
+          expected: evalCase.expected,
+          actual: output,
+          criteria: evalCase.criteria,
+          structuralMatch,
+          latencyMs,
+          error,
+          tags: evalCase.tags,
+          difficulty: evalCase.difficulty,
+        });
+      }
+
+      if (config.verbose && (i + 1) % 5 === 0) {
+        console.log(`  Completed ${i + 1}/${filteredCases.length} cases`);
+      }
+    }
+  }
+
+  return {
+    timestamp: new Date().toISOString(),
+    config: {
+      runs: config.runs,
+      type: args.type,
+      method: args.method,
+    },
+    totalCases: results.length,
+    results,
+  };
+}
+
+/**
+ * Print raw results summary to console
+ */
+function printRawResultsSummary(output: RawEvalOutput): void {
+  console.log('\n' + '='.repeat(70));
+  console.log('  RAW EVALUATION RESULTS (No Judge)');
+  console.log('='.repeat(70));
+  console.log(`\nTimestamp: ${output.timestamp}`);
+  console.log(`Total cases: ${output.totalCases}`);
+
+  const withErrors = output.results.filter((r) => r.error).length;
+  const structuralMatches = output.results.filter((r) => r.structuralMatch).length;
+
+  console.log(`Structural matches: ${structuralMatches}/${output.totalCases}`);
+  console.log(`Errors: ${withErrors}`);
+
+  // Group by target class/method
+  const byMethod = new Map<string, RawEvalResult[]>();
+  for (const r of output.results) {
+    const key = `${r.targetClass}.${r.targetMethod}`;
+    if (!byMethod.has(key)) {
+      byMethod.set(key, []);
+    }
+    byMethod.get(key)!.push(r);
+  }
+
+  console.log('\nBy Method:');
+  for (const [method, cases] of byMethod) {
+    const matches = cases.filter((c) => c.structuralMatch).length;
+    const errors = cases.filter((c) => c.error).length;
+    console.log(`  ${method}: ${cases.length} cases, ${matches} structural matches, ${errors} errors`);
+  }
+
+  console.log('\n' + '='.repeat(70));
+  console.log('  Use --save --output <file> to save full results for review');
+  console.log('='.repeat(70) + '\n');
+}
+
+/**
+ * Run a single evaluation case with judge
  */
 async function runCase(
   evalCase: EvalCase,
@@ -406,7 +633,7 @@ async function runCase(
 }
 
 /**
- * Run evaluation for a single dataset
+ * Run evaluation for a single dataset with judge
  */
 async function runDataset(
   discovered: DiscoveredDataset,
@@ -569,11 +796,6 @@ async function main(): Promise<void> {
     ...args,
   };
 
-  if (!args.json && config.verbose) {
-    console.log('Starting LLM-as-Judge Evaluation...');
-    console.log(`Configuration: ${JSON.stringify(config, null, 2)}`);
-  }
-
   // Discover datasets
   const discovered = await discoverDatasets(args.type, args.method);
 
@@ -586,6 +808,44 @@ async function main(): Promise<void> {
       console.log('See evaluation/SPEC.md for the expected format.');
     }
     process.exit(1);
+  }
+
+  // No-judge mode: collect raw results without LLM evaluation
+  if (args.noJudge) {
+    if (!args.json && config.verbose) {
+      console.log('Running in NO-JUDGE mode (raw results only)...');
+      console.log(`Found ${discovered.length} evaluation dataset(s)`);
+    }
+
+    const rawOutput = await runNoJudgeMode(discovered, config, args);
+
+    // Output results
+    if (args.json) {
+      console.log(JSON.stringify(rawOutput, null, 2));
+    } else {
+      printRawResultsSummary(rawOutput);
+    }
+
+    // Save if configured
+    if (config.saveResults) {
+      const outputPath =
+        args.output ||
+        `${config.resultsDir}/raw-eval-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+
+      await Bun.write(outputPath, JSON.stringify(rawOutput, null, 2));
+
+      if (!args.json) {
+        console.log(`Results saved to: ${outputPath}`);
+      }
+    }
+
+    return;
+  }
+
+  // Standard mode with LLM judge
+  if (!args.json && config.verbose) {
+    console.log('Starting LLM-as-Judge Evaluation...');
+    console.log(`Configuration: ${JSON.stringify(config, null, 2)}`);
   }
 
   if (!args.json) {
