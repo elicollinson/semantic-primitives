@@ -229,6 +229,16 @@ export {
   type WriteStats,
 } from './streams/index.ts';
 
+// SemanticCallable
+export {
+  SemanticCallable,
+  type InferredSignature,
+  type WrapperSuggestion,
+  type CallableTestCase,
+  type DetectedIssue,
+  type SafetyResult as CallableSafetyResult,
+} from './callable/index.ts';
+
 // SemanticConstructable
 export {
   SemanticConstructable,
