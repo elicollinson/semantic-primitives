@@ -1,1569 +1,1304 @@
-# Semantic Object (`object` - any non-primitive)
+# Object (Constructor Interface) - Semantic Primitives Brainstorm
 
-> Brainstorming LLM-powered enhancements for the base `object` type in TypeScript/JavaScript.
-
-The `object` type in TypeScript represents any non-primitive value. Unlike the `Object` constructor interface, lowercase `object` is the type-level representation of "something that isn't a primitive." This makes it a fascinating target for semantic enhancement - we can add intelligence to the most fundamental reference type.
+> The `Object` constructor interface is the foundation of JavaScript's object system. Unlike lowercase `object` (any non-primitive), capital `Object` refers to the constructor and its static methods, prototype chain mechanics, and the ability to create object instances.
 
 ---
 
 ## 1. Semantic Equivalence
 
-Traditional object equality (`===`, `==`, `Object.is()`, deep equality) focuses on structural/value identity. Semantic equivalence asks: "Do these objects **mean** the same thing?"
+### 1.1 Deep Semantic Comparison
 
-### 1.1 Basic Semantic Equality
-
-```typescript
-import { semanticEquals } from 'semantic-primitives';
-
-const user1 = {
-  firstName: 'John',
-  lastName: 'Doe',
-  email: 'john@example.com'
-};
-
-const user2 = {
-  name: 'John Doe',
-  emailAddress: 'john@example.com'
-};
-
-// Traditional: false (different keys)
-// Semantic: true (same person represented)
-await semanticEquals(user1, user2); // true
-
-await semanticEquals(user1, user2, {
-  confidence: 0.9,  // minimum confidence threshold
-  explain: true     // return reasoning
-});
-// { equal: true, confidence: 0.97, reason: "Both objects represent the same person..." }
-```
-
-### 1.2 Nested Semantic Equivalence
+Traditional equality (`===`, `==`) fails to capture semantic equivalence. An LLM could understand when two objects represent the same "concept" even with structural differences.
 
 ```typescript
-const order1 = {
-  customer: { name: 'Jane Smith' },
-  items: [
-    { product: 'Widget A', qty: 2 },
-    { product: 'Gadget B', qty: 1 }
-  ],
-  total: 59.99
-};
+// Basic semantic equivalence
+const user1 = { firstName: "John", lastName: "Doe", age: 30 };
+const user2 = { name: "John Doe", yearsOld: 30 };
 
-const order2 = {
-  buyer: { fullName: 'Jane Smith' },
-  lineItems: [
-    { itemName: 'Widget Type A', quantity: 2 },
-    { itemName: 'Gadget Model B', quantity: 1 }
-  ],
-  orderTotal: '$59.99'
-};
+await Object.semanticEquals(user1, user2);
+// Returns: { equivalent: true, confidence: 0.92, reasoning: "Both represent the same person..." }
 
-await semanticEquals(order1, order2, { depth: 'recursive' }); // true
-```
-
-### 1.3 Equivalence with Context
-
-```typescript
-// Provide domain context for better matching
-await semanticEquals(obj1, obj2, {
-  context: 'These are medical patient records',
-  synonyms: {
-    'DOB': ['dateOfBirth', 'birthDate', 'born'],
-    'Rx': ['prescription', 'medication']
-  }
+// With context hints
+await Object.semanticEquals(user1, user2, {
+  context: "user records from different systems",
+  ignoreFields: ["id", "timestamp"]
 });
 ```
 
-### 1.4 Partial/Subset Equivalence
+### 1.2 Prototype-Aware Semantic Comparison
 
 ```typescript
-// Is obj1 semantically a subset of obj2?
-await semanticSubset(partialUser, fullUser); // true if partialUser info is in fullUser
+class Animal {
+  speak() { return "..."; }
+}
 
-// Is there meaningful overlap?
-await semanticOverlap(obj1, obj2);
-// { overlapScore: 0.7, commonConcepts: ['address', 'contact info'], unique1: [...], unique2: [...] }
-```
+class Dog extends Animal {
+  speak() { return "woof"; }
+}
 
-### 1.5 Equivalence Classes
+class Wolf extends Animal {
+  speak() { return "howl"; }
+}
 
-```typescript
-// Group objects by semantic equivalence
-const objects = [user1, user2, user3, product1, product2, ...];
-const clusters = await semanticCluster(objects);
-// [
-//   { concept: 'user profile', members: [user1, user2, user3] },
-//   { concept: 'product listing', members: [product1, product2] }
-// ]
-```
+const dog = new Dog();
+const wolf = new Wolf();
 
-### 1.6 Cross-Format Equivalence
-
-```typescript
-const jsonData = { name: 'Acme Corp', revenue: 1000000 };
-const xmlString = '<company><name>Acme Corporation</name><annualRevenue>$1M</annualRevenue></company>';
-const csvRow = 'Acme Corp,1000000';
-
-await semanticEquals.crossFormat(jsonData, xmlString, csvRow); // true
-```
-
-### 1.7 Temporal Equivalence
-
-```typescript
-// Are these the same entity at different points in time?
-const user2023 = { name: 'Jane Doe', address: '123 Main St' };
-const user2024 = { name: 'Jane Smith', address: '456 Oak Ave' }; // married, moved
-
-await semanticEquals.temporal(user2023, user2024, {
-  identityFields: ['ssn', 'email'],
-  allowEvolution: true
+await Object.semanticEquivalence(dog, wolf, {
+  comparePrototypes: true,
+  semanticDepth: "behavioral" // "structural" | "behavioral" | "intentional"
 });
-// { sameEntity: true, changes: ['name', 'address'], reason: 'Same identity, evolved state' }
+// Returns: {
+//   structuralSimilarity: 0.95,
+//   behavioralSimilarity: 0.78,
+//   inheritanceSimilarity: 1.0,
+//   reasoning: "Both are Animal descendants with similar structure but different behaviors..."
+// }
+```
+
+### 1.3 Cross-Language Semantic Matching
+
+```typescript
+// Compare JS object to JSON Schema, TypeScript interface, or even Python dict description
+const jsObject = { users: [{ name: "Alice" }] };
+const pythonDictDescription = "Dict with 'users' key containing list of dicts with 'name' strings";
+
+await Object.crossLanguageMatch(jsObject, pythonDictDescription);
+// Returns: { matches: true, confidence: 0.97 }
+```
+
+### 1.4 Temporal Semantic Equivalence
+
+```typescript
+// Compare objects across time/versions
+const v1Config = { debug: true, logLevel: "verbose" };
+const v2Config = { logging: { enabled: true, verbosity: "high" } };
+
+await Object.temporalEquivalence(v1Config, v2Config, {
+  context: "configuration migration from v1 to v2",
+  migrationNotes: "logging config was restructured"
+});
+// Returns: { equivalent: true, migrationPath: [...] }
+```
+
+### 1.5 Intent-Based Equivalence
+
+```typescript
+// Do these objects serve the same purpose?
+const expressMiddleware = { handle: (req, res, next) => {} };
+const koaMiddleware = { use: async (ctx, next) => {} };
+
+await Object.intentEquivalent(expressMiddleware, koaMiddleware, {
+  domain: "web middleware"
+});
+// Returns: { equivalent: true, confidence: 0.89, patternMatch: "middleware pattern" }
 ```
 
 ---
 
 ## 2. Semantic Validation
 
-Beyond JSON Schema or Zod - validation that understands meaning, relationships, and business logic.
-
-### 2.1 Natural Language Validation
+### 2.1 Object vs object Validation
 
 ```typescript
-import { semanticValidate } from 'semantic-primitives';
+// Validate proper Object usage vs generic object
+const value: unknown = getSomething();
 
-const order = {
-  items: [{ name: 'Beer', qty: 5 }],
-  customer: { age: 17 }
-};
-
-await semanticValidate(order, {
-  rules: [
-    'Customer must be 21 or older to purchase alcohol',
-    'Quantity must be reasonable for personal use (not bulk resale)',
-    'Items must be in stock'
-  ]
-});
-// { valid: false, violations: ['Customer age 17 is below 21 for alcohol purchase'] }
-```
-
-### 2.2 Relationship Validation
-
-```typescript
-const invoice = {
-  subtotal: 100,
-  tax: 8.25,
-  shipping: 10,
-  total: 118.25,
-  discount: 5
-};
-
-await semanticValidate(invoice, {
-  relationships: [
-    'Total should equal subtotal plus tax plus shipping minus any discounts',
-    'Tax should be approximately 8.25% of subtotal',
-    'Shipping should be non-negative'
-  ]
-});
-// { valid: true, checks: [...] }
-```
-
-### 2.3 Domain-Aware Validation
-
-```typescript
-await semanticValidate(medicalRecord, {
-  domain: 'healthcare',
-  checkFor: [
-    'HIPAA compliance (no SSN in notes)',
-    'Valid ICD-10 codes',
-    'Logical medication dosages',
-    'No conflicting prescriptions'
-  ]
-});
-```
-
-### 2.4 Consistency Validation Across Objects
-
-```typescript
-const records = [record1, record2, record3, ...];
-
-await semanticValidate.consistency(records, {
-  rules: [
-    'All dates should use the same format',
-    'Currency values should use consistent precision',
-    'Enum values should be from a consistent set'
-  ]
-});
-```
-
-### 2.5 Anomaly Detection
-
-```typescript
-const transactions = getRecentTransactions();
-
-await semanticValidate.detectAnomalies(transactions, {
-  baseline: historicalTransactions,
-  sensitivity: 'high',
-  types: ['fraud-patterns', 'data-entry-errors', 'system-glitches']
-});
-// { anomalies: [{ index: 42, reason: 'Transaction amount 10x typical', confidence: 0.89 }] }
-```
-
-### 2.6 Progressive Validation
-
-```typescript
-// Validate incrementally as object is built
-const validator = await semanticValidate.progressive({
-  schema: 'user registration',
-  rules: userRegistrationRules
+const validation = await Object.validateUsage(value, {
+  expectedType: "Object", // "Object" | "object" | "plain-object" | "class-instance"
+  context: "API response parsing"
 });
 
-validator.add({ email: 'test@example.com' }); // { valid: true, complete: false, missing: ['name', 'password'] }
-validator.add({ name: 'John' }); // { valid: true, complete: false, missing: ['password'] }
-validator.add({ password: '123' }); // { valid: false, reason: 'Password too weak for account security' }
-```
-
-### 2.7 Validation with Auto-Fix Suggestions
-
-```typescript
-const result = await semanticValidate(data, rules, { suggestFixes: true });
-// {
-//   valid: false,
-//   violations: [...],
-//   suggestions: [
-//     { field: 'phone', current: '555-1234', suggested: '+1-555-555-1234', reason: 'Add country code' }
-//   ]
+// Returns: {
+//   isValid: true,
+//   actualType: "plain-object",
+//   suggestions: ["Consider using a typed interface instead of Object"],
+//   codeSmells: []
 // }
 ```
 
-### 2.8 Cultural/Regional Validation
+### 2.2 Constructor Pattern Validation
 
 ```typescript
-await semanticValidate(address, {
-  region: 'JP',
-  rules: 'valid Japanese postal address format'
-});
+function MyClass() {
+  this.value = 42;
+}
 
-await semanticValidate(businessDocument, {
-  culture: 'DE',
-  rules: 'German business document compliance'
+await Object.validateConstructor(MyClass, {
+  checkPrototype: true,
+  checkNewTarget: true,
+  suggestModernAlternatives: true
 });
+// Returns: {
+//   isValidConstructor: true,
+//   issues: ["Missing new.target check"],
+//   suggestion: "Consider using ES6 class syntax",
+//   modernEquivalent: "class MyClass { value = 42; }"
+// }
+```
+
+### 2.3 Semantic Schema Validation
+
+```typescript
+const apiResponse = { user: { name: "Alice", email: "alice@example.com" } };
+
+await Object.validateSemantically(apiResponse, {
+  description: "A user object with valid email and non-empty name",
+  strictness: "lenient" // "strict" | "lenient" | "permissive"
+});
+// Returns: {
+//   valid: true,
+//   semanticIssues: [],
+//   suggestions: ["Consider adding 'id' field for user identification"]
+// }
+```
+
+### 2.4 Domain-Specific Validation
+
+```typescript
+const medicalRecord = {
+  patientId: "12345",
+  diagnosis: "Common cold",
+  prescription: "Rest and fluids"
+};
+
+await Object.validateForDomain(medicalRecord, {
+  domain: "healthcare",
+  compliance: ["HIPAA"],
+  checkSensitiveData: true
+});
+// Returns: {
+//   valid: false,
+//   violations: ["Missing required 'dateOfService' for HIPAA compliance"],
+//   sensitiveFields: ["patientId", "diagnosis"],
+//   recommendations: [...]
+// }
+```
+
+### 2.5 API Contract Validation
+
+```typescript
+const requestBody = { action: "createUser", data: { name: "Bob" } };
+
+await Object.validateAPIContract(requestBody, {
+  endpoint: "POST /users",
+  openAPISpec: "./api-spec.yaml",
+  semanticValidation: true
+});
+// Returns: {
+//   structurallyValid: true,
+//   semanticallyValid: false,
+//   issues: ["'action' field is redundant when using REST endpoints"],
+//   suggestion: "Use { name: 'Bob' } directly as request body"
+// }
 ```
 
 ---
 
-## 3. Schema Inference
+## 3. Prototype Analysis
 
-LLM-powered schema generation that understands intent, not just structure.
-
-### 3.1 Basic Schema Inference
+### 3.1 Prototype Chain Explanation
 
 ```typescript
-import { inferSchema } from 'semantic-primitives';
+class Vehicle {}
+class Car extends Vehicle {}
+class Tesla extends Car {}
 
-const data = {
-  id: 'usr_123',
-  name: 'John Doe',
-  email: 'john@example.com',
-  createdAt: '2024-01-15T10:30:00Z'
-};
+const myTesla = new Tesla();
 
-const schema = await inferSchema(data);
-// {
-//   type: 'object',
-//   description: 'User account record',
-//   properties: {
-//     id: { type: 'string', format: 'prefixed-id', prefix: 'usr_', description: 'Unique user identifier' },
-//     name: { type: 'string', format: 'full-name', description: 'User full name' },
-//     email: { type: 'string', format: 'email', description: 'User email address' },
-//     createdAt: { type: 'string', format: 'iso-8601', description: 'Account creation timestamp' }
-//   }
+await Object.explainPrototypeChain(myTesla);
+// Returns: {
+//   chain: ["Tesla", "Car", "Vehicle", "Object"],
+//   explanation: "myTesla inherits from Tesla, which extends Car...",
+//   diagram: `
+//     myTesla
+//        │
+//        ▼
+//     Tesla.prototype
+//        │
+//        ▼
+//     Car.prototype
+//        │
+//        ▼
+//     Vehicle.prototype
+//        │
+//        ▼
+//     Object.prototype
+//        │
+//        ▼
+//       null
+//   `,
+//   inheritedMethods: { Tesla: [...], Car: [...], Vehicle: [...] }
 // }
 ```
 
-### 3.2 Schema from Multiple Examples
+### 3.2 Prototype Anomaly Detection
 
 ```typescript
-const examples = [user1, user2, user3, ...];
+// Detect prototype pollution, unusual chains, etc.
+const suspiciousObj = JSON.parse(userInput);
 
-const schema = await inferSchema.fromExamples(examples, {
-  detectOptional: true,      // infer which fields are optional
-  detectNullable: true,      // infer nullable fields
-  detectEnums: true,         // infer enum values from repeated patterns
-  detectRelationships: true  // infer foreign key relationships
-});
-```
-
-### 3.3 TypeScript Type Generation
-
-```typescript
-const typeDefinition = await inferSchema(data, { output: 'typescript' });
-// interface User {
-//   /** Unique user identifier */
-//   id: string;
-//   /** User's full name */
-//   name: string;
-//   /** Primary email address */
-//   email: string;
-//   /** ISO-8601 timestamp of account creation */
-//   createdAt: string;
+await Object.analyzePrototypeSafety(suspiciousObj);
+// Returns: {
+//   safe: false,
+//   issues: [
+//     { type: "prototype-pollution-attempt", field: "__proto__" },
+//     { type: "constructor-hijacking", field: "constructor" }
+//   ],
+//   sanitizedObject: { /* cleaned version */ },
+//   explanation: "Object contains prototype pollution vectors..."
 // }
 ```
 
-### 3.4 Schema with Semantic Constraints
+### 3.3 Inheritance Pattern Recognition
 
 ```typescript
-const schema = await inferSchema(financialData, {
-  inferConstraints: true,
-  domain: 'finance'
-});
-// {
-//   properties: {
-//     balance: {
-//       type: 'number',
-//       description: 'Account balance',
-//       constraints: {
-//         semantic: 'Must equal sum of all transactions',
-//         precision: 2,
-//         currency: 'inferred:USD'
-//       }
-//     }
-//   }
+await Object.recognizeInheritancePattern(SomeClass);
+// Returns: {
+//   pattern: "mixin-composition",
+//   alternatives: ["classical-inheritance", "prototype-delegation"],
+//   explanation: "This class uses Object.assign for mixin composition...",
+//   bestPractices: ["Consider using class mixins for better type safety"],
+//   codeExample: "..."
 // }
 ```
 
-### 3.5 Evolutionary Schema Inference
+### 3.4 Prototype Performance Analysis
 
 ```typescript
-const schemaTracker = inferSchema.track();
-
-// Feed it data over time
-schemaTracker.observe(day1Data);
-schemaTracker.observe(day2Data);
-schemaTracker.observe(day3Data);
-
-// Get evolved schema
-const schema = await schemaTracker.synthesize({
-  detectMigrations: true,  // Note schema changes over time
-  detectDeprecated: true   // Fields that disappeared
-});
-```
-
-### 3.6 Schema from Description
-
-```typescript
-// Generate schema from natural language
-const schema = await inferSchema.fromDescription(`
-  A blog post has a title (required, max 200 chars),
-  body content in markdown,
-  an author with name and email,
-  tags (array of strings, at least one required),
-  published date (optional, defaults to now),
-  and view count (starts at 0)
-`);
-```
-
-### 3.7 Schema Diff and Migration
-
-```typescript
-const oldSchema = await inferSchema(oldData);
-const newSchema = await inferSchema(newData);
-
-const migration = await inferSchema.diff(oldSchema, newSchema);
-// {
-//   added: ['phoneNumber', 'preferences.darkMode'],
-//   removed: ['legacyId'],
-//   changed: [{ field: 'status', from: 'string', to: 'enum' }],
-//   migrationCode: '...'  // Generated migration script
+await Object.analyzePrototypePerformance(deeplyNestedObject);
+// Returns: {
+//   chainDepth: 7,
+//   lookupComplexity: "O(n) where n=7",
+//   hotPaths: ["toString", "valueOf"],
+//   recommendations: [
+//     "Consider flattening inheritance to reduce lookup time",
+//     "Cache frequently accessed inherited methods"
+//   ],
+//   benchmarkEstimate: { lookupTime: "~0.001ms per property" }
 // }
 ```
 
-### 3.8 Schema Harmonization
+### 3.5 Semantic Prototype Mapping
 
 ```typescript
-// Merge multiple related schemas into unified schema
-const unifiedSchema = await inferSchema.harmonize([
-  apiV1Schema,
-  apiV2Schema,
-  legacyDbSchema
-], {
-  strategy: 'superset',  // or 'intersection', 'latest'
-  mapFields: true        // create field mappings
-});
+// Map prototype chain to real-world concepts
+await Object.semanticPrototypeMap(reactComponent);
+// Returns: {
+//   conceptualHierarchy: [
+//     { level: "ReactComponent", concept: "UI Building Block" },
+//     { level: "Component", concept: "Lifecycle-aware Entity" },
+//     { level: "Object", concept: "Base JavaScript Entity" }
+//   ],
+//   domainMapping: "React Component Architecture",
+//   analogies: ["Like a widget in a GUI toolkit", "Similar to a View in MVC"]
+// }
 ```
 
 ---
 
 ## 4. Semantic Type Guards
 
-LLM-powered runtime type checking that goes beyond structural matching.
-
-### 4.1 Intent Matching
+### 4.1 `hasSemanticProperty()`
 
 ```typescript
-import { matchesIntent, isValidEntity, conformsToPattern } from 'semantic-primitives';
+const user = { name: "Alice", email: "alice@example.com" };
 
-const data = { msg: 'hello world', ts: 1234567890 };
+await Object.hasSemanticProperty(user, "contact information");
+// Returns: { has: true, matchingFields: ["email"], confidence: 0.95 }
 
-if (await matchesIntent(data, 'chat message')) {
-  // LLM determined this matches the concept of a chat message
-}
+await Object.hasSemanticProperty(user, "billing address");
+// Returns: { has: false, suggestions: ["Add 'address' or 'billingAddress' field"] }
 
-if (await matchesIntent(data, 'financial transaction')) {
-  // false - doesn't match this intent
-}
+// With fuzzy matching
+const config = { apiEndpoint: "https://api.example.com" };
+await Object.hasSemanticProperty(config, "API URL", { fuzzy: true });
+// Returns: { has: true, matchingFields: ["apiEndpoint"], confidence: 0.88 }
 ```
 
-### 4.2 Entity Validation
+### 4.2 `isProperObject()`
 
 ```typescript
-const obj = {
-  name: 'Acme Corporation',
-  founded: 1985,
-  employees: 500,
-  headquarters: 'New York'
+// Distinguish various "object-like" things
+await Object.isProperObject({}); // { proper: true, type: "plain-object" }
+await Object.isProperObject([]); // { proper: false, type: "array", note: "Arrays are objects but not 'proper' plain objects" }
+await Object.isProperObject(null); // { proper: false, type: "null", note: "typeof null === 'object' is a JS quirk" }
+await Object.isProperObject(new Map()); // { proper: false, type: "map-instance" }
+await Object.isProperObject(Object.create(null)); // { proper: true, type: "null-prototype-object" }
+
+// With semantic context
+await Object.isProperObject(value, {
+  expectation: "configuration object",
+  rejectArrays: true,
+  rejectClassInstances: true
+});
+```
+
+### 4.3 `isSemanticInstanceOf()`
+
+```typescript
+// Beyond instanceof - semantic type checking
+class DatabaseConnection {}
+const mockConnection = { query: async () => {}, close: () => {} };
+
+await Object.isSemanticInstanceOf(mockConnection, DatabaseConnection);
+// Returns: {
+//   structuralMatch: true,
+//   behavioralMatch: true,
+//   isActualInstance: false,
+//   verdict: "Duck-typed compatible",
+//   confidence: 0.91
+// }
+```
+
+### 4.4 `hasSemanticShape()`
+
+```typescript
+const data = {
+  items: [{ id: 1, name: "Widget" }],
+  total: 1,
+  page: 1
 };
 
-if (await isValidEntity(obj, 'company')) {
-  // It's a valid company entity
-}
-
-// With strictness levels
-await isValidEntity(obj, 'publicly traded company', { strictness: 'high' });
-// false - missing stock symbol, market cap, etc.
+await Object.hasSemanticShape(data, "paginated API response");
+// Returns: {
+//   matches: true,
+//   confidence: 0.94,
+//   inferredSchema: {
+//     items: "array of entities",
+//     total: "total count",
+//     page: "current page number"
+//   },
+//   missingCommonFields: ["pageSize", "totalPages"]
+// }
 ```
 
-### 4.3 Pattern Conformance
+### 4.5 `semanticTypeGuard()` - Generate Runtime Type Guards
 
 ```typescript
-const event = {
-  type: 'user.created',
-  data: { userId: '123', email: 'test@test.com' },
-  timestamp: Date.now()
-};
+const guard = await Object.semanticTypeGuard("non-empty user object with valid email");
 
-if (await conformsToPattern(event, 'webhook event payload')) {
-  // Matches common webhook patterns
-}
+// Returns a function:
+const isValidUser = guard.check;
+isValidUser({ name: "Alice", email: "alice@test.com" }); // true
+isValidUser({ name: "", email: "invalid" }); // false
 
-// Domain-specific patterns
-await conformsToPattern(data, 'GraphQL response');
-await conformsToPattern(data, 'Redux action');
-await conformsToPattern(data, 'OpenAPI operation');
+// Also provides TypeScript type:
+guard.typeDefinition; // "{ name: string; email: string; ... }"
 ```
 
-### 4.4 Semantic `is` Operator
+### 4.6 `isSemanticSubtype()`
 
 ```typescript
-import { is } from 'semantic-primitives';
+const admin = { name: "Alice", email: "a@b.com", role: "admin", permissions: ["all"] };
+const user = { name: "Bob", email: "b@c.com" };
 
-// Semantic type predicates
-if (await is.userProfile(data)) { ... }
-if (await is.apiError(response)) { ... }
-if (await is.paginatedResult(data)) { ... }
-if (await is.configurationObject(obj)) { ... }
-
-// Dynamic semantic check
-if (await is(data, 'something that looks like a shopping cart')) { ... }
-```
-
-### 4.5 Negative Type Guards
-
-```typescript
-import { isNot, excludes } from 'semantic-primitives';
-
-// Ensure data is NOT something
-if (await isNot(data, 'personally identifiable information')) {
-  // Safe to log
-}
-
-if (await excludes(config, 'credentials or secrets')) {
-  // Safe to expose
-}
-```
-
-### 4.6 Confidence-Based Guards
-
-```typescript
-const check = await matchesIntent(data, 'valid order', {
-  returnConfidence: true
-});
-
-if (check.matches && check.confidence > 0.95) {
-  processOrder(data);
-} else if (check.confidence > 0.7) {
-  flagForReview(data, check.concerns);
-} else {
-  reject(data);
-}
-```
-
-### 4.7 Compositional Type Guards
-
-```typescript
-import { and, or, not } from 'semantic-primitives/guards';
-
-const isValidCheckoutData = and(
-  matchesIntent('shopping cart'),
-  matchesIntent('has payment method'),
-  not(matchesIntent('contains invalid items'))
-);
-
-if (await isValidCheckoutData(data)) { ... }
-```
-
-### 4.8 Learning Type Guards
-
-```typescript
-// Train a custom type guard
-const isValidLead = await trainTypeGuard({
-  positive: [goodLead1, goodLead2, goodLead3],
-  negative: [badLead1, badLead2],
-  description: 'A sales lead worth pursuing'
-});
-
-// Use it
-if (await isValidLead(newLead)) {
-  addToSalesPipeline(newLead);
-}
+await Object.isSemanticSubtype(admin, user);
+// Returns: {
+//   isSubtype: true,
+//   relationship: "admin extends user",
+//   additionalFields: ["role", "permissions"],
+//   explanation: "Admin has all user fields plus role-specific additions"
+// }
 ```
 
 ---
 
 ## 5. Semantic Operations
 
-Novel operations enabled by LLM understanding.
-
-### 5.1 Explain
+### 5.1 `Object.describeShape()`
 
 ```typescript
-import { explain } from 'semantic-primitives';
-
-const complexConfig = { /* deeply nested config */ };
-
-const explanation = await explain(complexConfig);
-// "This appears to be a webpack configuration for a React application.
-//  It sets up Babel transpilation, CSS modules, code splitting for
-//  production, and development server on port 3000..."
-
-await explain(complexConfig, { audience: 'non-technical' });
-// "This file tells the computer how to build your website..."
-
-await explain(complexConfig, { format: 'bullet-points', depth: 'detailed' });
-```
-
-### 5.2 Summarize
-
-```typescript
-import { summarize } from 'semantic-primitives';
-
-const apiResponse = { /* 500 line JSON response */ };
-
-await summarize(apiResponse);
-// "API returned 47 users, 12 active, sorted by creation date, page 2 of 5"
-
-await summarize(apiResponse, {
-  focus: 'anomalies',
-  maxLength: 100
-});
-// "3 users have negative balances, 1 has invalid email format"
-```
-
-### 5.3 Intelligent Merge
-
-```typescript
-import { merge } from 'semantic-primitives';
-
-const base = {
-  name: 'John Doe',
-  address: { city: 'New York', zip: '10001' },
-  preferences: { theme: 'dark' }
+const complexObject = {
+  users: [{ id: 1, profile: { avatar: "url", settings: { theme: "dark" } } }],
+  metadata: { version: "1.0", generated: new Date() }
 };
 
-const update = {
-  fullName: 'Jonathan Doe',  // Different key, same concept
-  address: { city: 'Boston' },
-  preferences: { language: 'en' }
+await Object.describeShape(complexObject);
+// Returns: {
+//   naturalDescription: "A data structure containing an array of users with nested profiles and settings, plus metadata with version info",
+//   structure: {
+//     depth: 4,
+//     complexity: "moderate",
+//     patterns: ["nested-objects", "array-of-objects", "metadata-pattern"]
+//   },
+//   typeScript: `interface Shape {
+//     users: Array<{
+//       id: number;
+//       profile: {
+//         avatar: string;
+//         settings: { theme: string; }
+//       }
+//     }>;
+//     metadata: { version: string; generated: Date; }
+//   }`,
+//   jsonSchema: { /* JSON Schema */ },
+//   suggestedName: "UserDataWithMetadata"
+// }
+```
+
+### 5.2 `Object.explainPrototype()`
+
+```typescript
+class EventEmitter {
+  on(event, handler) {}
+  emit(event, ...args) {}
+}
+
+await Object.explainPrototype(EventEmitter);
+// Returns: {
+//   explanation: "EventEmitter implements the Observer pattern, allowing objects to subscribe to and emit events...",
+//   designPattern: "Observer/Pub-Sub",
+//   commonUseCases: ["Event-driven architectures", "Decoupled communication"],
+//   methods: {
+//     on: "Subscribes a handler function to a named event",
+//     emit: "Triggers all handlers registered for the given event"
+//   },
+//   relatedPatterns: ["Mediator", "Command"],
+//   realWorldAnalogy: "Like a radio station (emit) and listeners (on)"
+// }
+```
+
+### 5.3 `Object.suggestInterface()`
+
+```typescript
+const samples = [
+  { name: "Alice", age: 30, email: "alice@example.com" },
+  { name: "Bob", age: 25 },
+  { name: "Charlie", age: 35, email: "charlie@example.com", phone: "555-1234" }
+];
+
+await Object.suggestInterface(samples);
+// Returns: {
+//   typescript: `interface User {
+//     name: string;
+//     age: number;
+//     email?: string;
+//     phone?: string;
+//   }`,
+//   zod: `z.object({
+//     name: z.string(),
+//     age: z.number(),
+//     email: z.string().email().optional(),
+//     phone: z.string().optional()
+//   })`,
+//   suggestions: [
+//     "Consider making 'email' required if it's essential for user identification",
+//     "Phone format suggests US phone number - consider validation"
+//   ],
+//   inferredPurpose: "User profile/contact information"
+// }
+```
+
+### 5.4 `Object.semanticMerge()`
+
+```typescript
+const baseConfig = {
+  server: { port: 3000, host: "localhost" },
+  logging: { level: "info" }
 };
 
-const merged = await merge(base, update, {
-  conflictResolution: 'semantic',  // LLM decides conflicts
-  preserveStructure: 'base'
-});
-// {
-//   name: 'Jonathan Doe',  // Updated (recognized as same field)
-//   address: { city: 'Boston', zip: '10001' },  // Merged intelligently
-//   preferences: { theme: 'dark', language: 'en' }  // Combined
-// }
-```
-
-### 5.4 Transform
-
-```typescript
-import { transform } from 'semantic-primitives';
-
-const input = {
-  user_name: 'jdoe',
-  user_email: 'jdoe@company.com',
-  created_at: '2024-01-15'
+const overrides = {
+  server: { port: 8080 },
+  logging: { format: "json" }
 };
 
-// Transform to match a target structure
-const output = await transform(input, {
-  targetShape: {
-    username: 'string',
-    contact: { email: 'string' },
-    metadata: { createdDate: 'Date' }
-  }
+await Object.semanticMerge(baseConfig, overrides, {
+  strategy: "smart", // "deep" | "shallow" | "smart"
+  conflictResolution: "prefer-override",
+  context: "configuration merging"
 });
-// {
-//   username: 'jdoe',
-//   contact: { email: 'jdoe@company.com' },
-//   metadata: { createdDate: Date('2024-01-15') }
+// Returns: {
+//   result: {
+//     server: { port: 8080, host: "localhost" },
+//     logging: { level: "info", format: "json" }
+//   },
+//   mergeLog: [
+//     { path: "server.port", action: "override", from: 3000, to: 8080 },
+//     { path: "logging.format", action: "add", value: "json" }
+//   ],
+//   warnings: [],
+//   suggestions: ["Consider using environment variables for port configuration"]
 // }
 ```
 
-### 5.5 Query (Natural Language)
+### 5.5 `Object.semanticDiff()`
 
 ```typescript
-import { query } from 'semantic-primitives';
+const before = { name: "Alice", role: "user", loginCount: 5 };
+const after = { name: "Alice", role: "admin", loginCount: 6, lastLogin: new Date() };
 
-const data = { /* complex nested object */ };
-
-await query(data, 'What is the total value of all completed orders?');
-// 4523.99
-
-await query(data, 'List all users who signed up this month');
-// [{ name: 'Alice' }, { name: 'Bob' }]
-
-await query(data, 'Is there any PII in this object?');
-// { found: true, fields: ['ssn', 'dob'], recommendation: 'Redact before logging' }
+await Object.semanticDiff(before, after);
+// Returns: {
+//   naturalLanguage: "User 'Alice' was promoted from 'user' to 'admin', logged in once more, and lastLogin was tracked",
+//   changes: [
+//     { field: "role", type: "update", semantic: "permission elevation", significance: "high" },
+//     { field: "loginCount", type: "increment", semantic: "activity tracking", significance: "low" },
+//     { field: "lastLogin", type: "addition", semantic: "audit field added", significance: "medium" }
+//   ],
+//   securityImplications: ["Role change may require audit logging"],
+//   suggestedActions: ["Notify security team of role elevation"]
+// }
 ```
 
-### 5.6 Redact
+### 5.6 `Object.normalizeShape()`
 
 ```typescript
-import { redact } from 'semantic-primitives';
+// Normalize inconsistent objects to a common shape
+const inconsistentData = [
+  { firstName: "Alice", lastName: "Smith" },
+  { name: "Bob Jones" },
+  { first_name: "Charlie", last_name: "Brown" }
+];
 
-const sensitiveData = {
-  name: 'John Doe',
-  ssn: '123-45-6789',
-  creditCard: '4111-1111-1111-1111',
-  notes: 'Patient has diabetes, lives at 123 Main St'
+await Object.normalizeShape(inconsistentData, {
+  targetShape: "{ firstName: string, lastName: string }",
+  inferMappings: true
+});
+// Returns: {
+//   normalized: [
+//     { firstName: "Alice", lastName: "Smith" },
+//     { firstName: "Bob", lastName: "Jones" },
+//     { firstName: "Charlie", lastName: "Brown" }
+//   ],
+//   mappings: {
+//     "name": "split into firstName + lastName",
+//     "first_name": "camelCase to firstName",
+//     "last_name": "camelCase to lastName"
+//   },
+//   confidence: 0.96
+// }
+```
+
+### 5.7 `Object.generateAccessors()`
+
+```typescript
+const schema = { name: "string", age: "number", email: "email" };
+
+await Object.generateAccessors(schema, {
+  style: "fluent", // "fluent" | "getter-setter" | "proxy"
+  validation: true,
+  immutable: false
+});
+// Returns: {
+//   code: `
+//     class GeneratedAccessors {
+//       #data = {};
+//
+//       name(value) {
+//         if (value === undefined) return this.#data.name;
+//         if (typeof value !== 'string') throw new TypeError('name must be string');
+//         this.#data.name = value;
+//         return this;
+//       }
+//
+//       age(value) { /* ... */ }
+//       email(value) { /* with email validation */ }
+//     }
+//   `,
+//   usage: "new GeneratedAccessors().name('Alice').age(30).email('a@b.com')"
+// }
+```
+
+### 5.8 `Object.semanticFreeze()`
+
+```typescript
+// Freeze with semantic understanding of what SHOULD be frozen
+const appState = {
+  config: { apiUrl: "https://api.com", debug: false },
+  cache: { users: new Map(), ttl: 60000 },
+  runtime: { requestCount: 0 }
 };
 
-const safe = await redact(sensitiveData, {
-  types: ['PII', 'PHI', 'financial'],
-  strategy: 'mask'  // or 'remove', 'tokenize', 'generalize'
+await Object.semanticFreeze(appState, {
+  freezePatterns: ["config", "constants"],
+  allowMutation: ["cache", "runtime", "counters"],
+  context: "application state management"
 });
-// {
-//   name: 'J*** D**',
-//   ssn: '***-**-****',
-//   creditCard: '****-****-****-1111',
-//   notes: 'Patient has [REDACTED], lives at [REDACTED]'
-// }
-```
-
-### 5.7 Enrich
-
-```typescript
-import { enrich } from 'semantic-primitives';
-
-const company = { name: 'Apple Inc', ticker: 'AAPL' };
-
-const enriched = await enrich(company, {
-  sources: ['general-knowledge'],
-  fields: ['industry', 'founded', 'headquarters', 'ceo']
-});
-// {
-//   name: 'Apple Inc',
-//   ticker: 'AAPL',
-//   industry: 'Technology',
-//   founded: 1976,
-//   headquarters: 'Cupertino, CA',
-//   ceo: 'Tim Cook',
-//   _enrichmentConfidence: { industry: 0.99, founded: 0.99, ... }
-// }
-```
-
-### 5.8 Normalize
-
-```typescript
-import { normalize } from 'semantic-primitives';
-
-const messyData = {
-  'First Name': 'JOHN',
-  'last-name': 'doe',
-  'E-Mail Address': 'JOHN.DOE@EXAMPLE.COM',
-  'Phone #': '(555) 123-4567',
-  'DOB': 'January 15th, 1990'
-};
-
-const clean = await normalize(messyData, {
-  casing: { keys: 'camelCase', stringValues: 'preserve' },
-  formats: { email: 'lowercase', phone: 'e164', date: 'iso8601' }
-});
-// {
-//   firstName: 'JOHN',
-//   lastName: 'doe',
-//   emailAddress: 'john.doe@example.com',
-//   phone: '+15551234567',
-//   dob: '1990-01-15'
-// }
-```
-
-### 5.9 Decompose
-
-```typescript
-import { decompose } from 'semantic-primitives';
-
-const monolith = { /* big object with mixed concerns */ };
-
-const components = await decompose(monolith, {
-  by: 'domain',  // or 'concern', 'lifecycle', 'sensitivity'
-});
-// {
-//   userInfo: { name, email, ... },
-//   billingInfo: { cardNumber, address, ... },
-//   preferences: { theme, notifications, ... },
-//   metadata: { createdAt, updatedAt, ... }
-// }
-```
-
-### 5.10 Relate
-
-```typescript
-import { relate } from 'semantic-primitives';
-
-const obj1 = { orderId: 'ORD-123', customerId: 'CUST-456' };
-const obj2 = { id: 'CUST-456', name: 'Jane Doe' };
-
-const relationship = await relate(obj1, obj2);
-// {
-//   type: 'reference',
-//   from: { object: 'obj1', field: 'customerId' },
-//   to: { object: 'obj2', field: 'id' },
-//   cardinality: 'many-to-one',
-//   semanticRelation: 'order belongs to customer'
+// Returns: {
+//   frozen: { /* appState with config frozen, cache/runtime mutable */ },
+//   frozenPaths: ["config", "config.apiUrl", "config.debug"],
+//   mutablePaths: ["cache", "runtime"],
+//   reasoning: "Config should be immutable after initialization; cache and runtime need mutation for normal operation"
 // }
 ```
 
 ---
 
-## 6. Semantic Diff
+## 6. Object Methods Enhancement
 
-LLM-powered object comparison that understands meaning, not just structure.
-
-### 6.1 Intelligent Diff
+### 6.1 Enhanced `Object.keys()` - Semantic Keys
 
 ```typescript
-import { semanticDiff } from 'semantic-primitives';
-
-const before = {
-  name: 'John Smith',
-  address: '123 Main Street, Apt 4B',
-  status: 'active'
+const user = {
+  id: 1,
+  name: "Alice",
+  email: "alice@example.com",
+  passwordHash: "abc123",
+  createdAt: new Date(),
+  _internal: "hidden"
 };
 
-const after = {
-  fullName: 'Jonathan Smith',
-  streetAddress: '123 Main St, Apartment 4B',
-  status: 'inactive'
-};
-
-const diff = await semanticDiff(before, after);
-// {
-//   meaningful: [
-//     { type: 'rename', path: 'name', newPath: 'fullName', oldValue: 'John', newValue: 'Jonathan', semantic: 'Name changed' },
-//     { type: 'change', path: 'status', oldValue: 'active', newValue: 'inactive', semantic: 'Account deactivated' }
-//   ],
-//   cosmetic: [
-//     { type: 'rename', path: 'address', newPath: 'streetAddress', note: 'Key renamed but same semantic field' },
-//     { type: 'format', path: 'streetAddress', note: 'Abbreviated Street to St, Apt to Apartment (equivalent)' }
-//   ],
-//   summary: 'User Jonathan (formerly John) was deactivated. Address key renamed.'
-// }
-```
-
-### 6.2 Diff Categories
-
-```typescript
-const diff = await semanticDiff(old, new, {
-  categorize: true
-});
-// {
+await Object.semanticKeys(user);
+// Returns: {
+//   all: ["id", "name", "email", "passwordHash", "createdAt", "_internal"],
+//   public: ["id", "name", "email", "createdAt"],
+//   private: ["_internal"],
+//   sensitive: ["passwordHash"],
+//   identifiers: ["id", "email"],
+//   timestamps: ["createdAt"],
 //   categories: {
-//     breaking: [],
-//     behavioral: [{ field: 'status', impact: 'User cannot login' }],
-//     cosmetic: [{ field: 'name', note: 'Key style changed' }],
-//     additive: [{ field: 'newFeatureFlag' }],
-//     subtractive: [{ field: 'deprecatedField' }]
+//     "user-identity": ["id", "name"],
+//     "contact-info": ["email"],
+//     "security": ["passwordHash"],
+//     "metadata": ["createdAt", "_internal"]
+//   }
+// }
+
+// Filter by semantic category
+await Object.semanticKeys(user, { category: "safe-for-logging" });
+// Returns: ["id", "name", "createdAt"]
+```
+
+### 6.2 Enhanced `Object.values()` - Semantic Values
+
+```typescript
+const mixedData = {
+  count: 42,
+  name: "Test",
+  active: true,
+  tags: ["a", "b"],
+  nested: { x: 1 }
+};
+
+await Object.semanticValues(mixedData);
+// Returns: {
+//   byType: {
+//     numbers: [42],
+//     strings: ["Test"],
+//     booleans: [true],
+//     arrays: [["a", "b"]],
+//     objects: [{ x: 1 }]
+//   },
+//   bySemanticRole: {
+//     quantities: [42],
+//     labels: ["Test"],
+//     flags: [true],
+//     collections: [["a", "b"]],
+//     structured: [{ x: 1 }]
+//   },
+//   statistics: {
+//     primitiveCount: 3,
+//     referenceCount: 2,
+//     nullishCount: 0
 //   }
 // }
 ```
 
-### 6.3 Diff with Impact Analysis
+### 6.3 Enhanced `Object.entries()` - Semantic Entries
 
 ```typescript
-const diff = await semanticDiff(oldConfig, newConfig, {
-  context: 'production deployment configuration',
-  analyzeImpact: true
-});
-// {
-//   changes: [...],
-//   impact: {
-//     risk: 'high',
-//     concerns: [
-//       'Database connection pool size decreased - may cause connection exhaustion',
-//       'Cache TTL changed from 1 hour to 5 minutes - increased database load'
-//     ],
-//     recommendations: [
-//       'Deploy during low-traffic period',
-//       'Monitor database connections closely'
-//     ]
-//   }
-// }
-```
+const config = {
+  API_URL: "https://api.com",
+  MAX_RETRIES: 3,
+  enableCache: true,
+  timeout_ms: 5000
+};
 
-### 6.4 Three-Way Merge Diff
-
-```typescript
-const diff = await semanticDiff.threeWay(base, ours, theirs);
-// {
-//   autoMergeable: [...],
-//   conflicts: [
-//     {
-//       path: 'settings.maxRetries',
-//       base: 3, ours: 5, theirs: 10,
-//       recommendation: 'Use theirs (10) - higher resilience',
-//       confidence: 0.7
-//     }
-//   ]
-// }
-```
-
-### 6.5 Historical Diff
-
-```typescript
-const history = [v1, v2, v3, v4, v5];
-
-const evolution = await semanticDiff.history(history);
-// {
-//   timeline: [
-//     { from: 'v1', to: 'v2', summary: 'Added user authentication fields' },
-//     { from: 'v2', to: 'v3', summary: 'Restructured address to nested object' },
-//     ...
+await Object.semanticEntries(config);
+// Returns: {
+//   entries: [
+//     { key: "API_URL", value: "https://api.com", semantic: { type: "url", category: "endpoint", naming: "SCREAMING_SNAKE" } },
+//     { key: "MAX_RETRIES", value: 3, semantic: { type: "limit", category: "resilience", naming: "SCREAMING_SNAKE" } },
+//     { key: "enableCache", value: true, semantic: { type: "feature-flag", category: "performance", naming: "camelCase" } },
+//     { key: "timeout_ms", value: 5000, semantic: { type: "duration", unit: "milliseconds", category: "timing", naming: "snake_case" } }
 //   ],
-//   trends: [
-//     'Object is growing in complexity',
-//     'Moving toward nested structure',
-//     'Deprecated fields being removed'
-//   ]
+//   namingInconsistencies: ["Mixed naming conventions detected"],
+//   suggestions: ["Standardize on camelCase for consistency"]
 // }
 ```
 
-### 6.6 Diff Visualization
+### 6.4 Enhanced `Object.fromEntries()` - Semantic Construction
 
 ```typescript
-const diff = await semanticDiff(old, new, {
-  format: 'visual'
+const rawEntries = [
+  ["user_name", "alice"],
+  ["userEmail", "alice@example.com"],
+  ["USER_AGE", "30"]
+];
+
+await Object.semanticFromEntries(rawEntries, {
+  normalizeKeys: "camelCase",
+  inferTypes: true,
+  validateValues: true
 });
-// Returns structured data for visual rendering:
-// - Tree view with color-coded changes
-// - Arrows showing field renames/moves
-// - Grouping by semantic category
+// Returns: {
+//   result: {
+//     userName: "alice",
+//     userEmail: "alice@example.com",
+//     userAge: 30  // Converted from string
+//   },
+//   transformations: [
+//     { from: "user_name", to: "userName", keyChange: true },
+//     { from: "USER_AGE", to: "userAge", keyChange: true, typeChange: "string -> number" }
+//   ],
+//   validationResults: {
+//     userEmail: { valid: true, format: "email" }
+//   }
+// }
 ```
 
-### 6.7 Contextual Diff
+### 6.5 Enhanced `Object.assign()` - Semantic Assignment
 
 ```typescript
-// Diff with domain understanding
-await semanticDiff(oldSchema, newSchema, {
-  context: 'GraphQL schema',
-  checkBreaking: true
-});
-// Understands GraphQL-specific breaking changes:
-// - Removed fields, changed types, nullability changes
+const target = { name: "Alice", role: "user" };
+const source = { role: "admin", permissions: ["read"] };
 
-await semanticDiff(oldApi, newApi, {
-  context: 'REST API response',
-  version: 'v1 to v2'
+await Object.semanticAssign(target, source, {
+  conflictStrategy: "ask", // "overwrite" | "keep" | "merge" | "ask"
+  context: "user permission update"
 });
+// Returns: {
+//   result: { name: "Alice", role: "admin", permissions: ["read"] },
+//   conflicts: [
+//     { key: "role", targetValue: "user", sourceValue: "admin", resolution: "overwrite", significance: "high" }
+//   ],
+//   warnings: ["Permission elevation detected - role changed from 'user' to 'admin'"],
+//   auditLog: [...]
+// }
+```
+
+### 6.6 Enhanced `Object.getOwnPropertyDescriptors()` - Semantic Descriptors
+
+```typescript
+const obj = {
+  get fullName() { return this.first + ' ' + this.last; },
+  set fullName(v) { [this.first, this.last] = v.split(' '); },
+  first: "Alice",
+  last: "Smith"
+};
+
+await Object.semanticDescriptors(obj);
+// Returns: {
+//   fullName: {
+//     descriptor: { get: [Function], set: [Function], enumerable: true, configurable: true },
+//     semantic: {
+//       type: "computed-property",
+//       pattern: "getter-setter-pair",
+//       purpose: "Provides combined view of first and last name",
+//       dependencies: ["first", "last"],
+//       sideEffects: ["Setter modifies 'first' and 'last' properties"]
+//     }
+//   },
+//   first: {
+//     descriptor: { value: "Alice", writable: true, enumerable: true, configurable: true },
+//     semantic: {
+//       type: "data-property",
+//       role: "component of fullName",
+//       validation: "should be non-empty string"
+//     }
+//   },
+//   // ...
+// }
 ```
 
 ---
 
 ## 7. Edge Cases & Challenges
 
-### 7.1 Circular References
+### 7.1 Object vs object Disambiguation
 
 ```typescript
-const obj: any = { name: 'self' };
-obj.self = obj;  // Circular reference
-
-// Handle gracefully
-const explained = await explain(obj, {
-  handleCircular: 'reference'  // or 'truncate', 'flatten'
-});
-// "Object with self-reference: { name: 'self', self: [Circular -> root] }"
-
-// For equivalence
-const obj2: any = { name: 'self' };
-obj2.ref = obj2;
-
-await semanticEquals(obj, obj2, { circularHandling: 'structural' });
-// true - same circular structure
+// The eternal confusion: Object vs object
+await Object.explainDifference("Object", "object");
+// Returns: {
+//   explanation: `
+//     - 'object' (lowercase): TypeScript type for any non-primitive value
+//     - 'Object' (uppercase): The Object constructor/interface
+//
+//     Key differences:
+//     1. 'object' excludes primitives (string, number, boolean, symbol, undefined, null)
+//     2. 'Object' includes methods like toString(), hasOwnProperty()
+//     3. 'Object' can match primitives due to autoboxing
+//   `,
+//   examples: {
+//     objectLowercase: "let x: object = {}; // OK\nlet y: object = 42; // Error",
+//     objectUppercase: "let x: Object = {}; // OK\nlet y: Object = 42; // OK (autoboxing)"
+//   },
+//   recommendations: [
+//     "Prefer 'object' for type annotations",
+//     "Use 'Record<string, unknown>' for dictionary-like objects",
+//     "Use specific interfaces when shape is known"
+//   ],
+//   lintRules: ["@typescript-eslint/ban-types"]
+// }
 ```
 
-### 7.2 Prototypes and Inheritance
+### 7.2 Frozen/Sealed Object Handling
 
 ```typescript
-class Animal {
-  speak() { return 'sound'; }
-}
+const frozen = Object.freeze({ a: 1, b: { c: 2 } });
 
-class Dog extends Animal {
-  breed: string = 'labrador';
-  speak() { return 'bark'; }
-}
+await Object.analyzeImmutability(frozen);
+// Returns: {
+//   status: "shallow-frozen",
+//   frozenDepth: 1,
+//   mutablePaths: ["b.c"],
+//   issues: ["Nested object 'b' is still mutable"],
+//   deepFreezeCode: `
+//     function deepFreeze(obj) {
+//       Object.keys(obj).forEach(key => {
+//         if (typeof obj[key] === 'object' && obj[key] !== null) {
+//           deepFreeze(obj[key]);
+//         }
+//       });
+//       return Object.freeze(obj);
+//     }
+//   `,
+//   alternatives: ["Use Immutable.js", "Use immer for immutable updates"]
+// }
 
-const dog = new Dog();
-const plainObj = { breed: 'labrador' };
-
-// Consider prototype chain?
-await semanticEquals(dog, plainObj, {
-  considerPrototype: true
-});
-// false - different capabilities
-
-await semanticEquals(dog, plainObj, {
-  considerPrototype: false,
-  dataOnly: true
-});
-// true - same data
+// Semantic operations on frozen objects
+await Object.semanticUpdate(frozen, { a: 2 });
+// Returns: {
+//   result: { a: 2, b: { c: 2 } }, // New object, original unchanged
+//   warning: "Original object is frozen; returned new object",
+//   method: "structural-sharing"
+// }
 ```
 
-### 7.3 Symbol Properties
+### 7.3 Null Prototype Objects
 
 ```typescript
-const sym = Symbol('secret');
+const nullProto = Object.create(null);
+nullProto.key = "value";
+
+await Object.analyzeNullPrototype(nullProto);
+// Returns: {
+//   hasNullPrototype: true,
+//   missingMethods: ["toString", "hasOwnProperty", "valueOf", ...],
+//   useCases: ["Dictionary/map objects", "Avoiding prototype pollution"],
+//   risks: ["Cannot use inherited methods directly"],
+//   recommendations: [
+//     "Use Map for dictionary-like structures",
+//     "Use Object.hasOwn() instead of hasOwnProperty()"
+//   ],
+//   safeAccess: {
+//     hasKey: "Object.hasOwn(obj, 'key')",
+//     toString: "Object.prototype.toString.call(obj)"
+//   }
+// }
+```
+
+### 7.4 Circular Reference Handling
+
+```typescript
+const circular = { a: 1 };
+circular.self = circular;
+
+await Object.analyzeCircular(circular);
+// Returns: {
+//   hasCircular: true,
+//   circularPaths: [["self"]],
+//   visualization: `
+//     {
+//       a: 1,
+//       self: [Circular *1]
+//     }
+//   `,
+//   safeOperations: {
+//     stringify: "JSON.stringify(obj, getCircularReplacer())",
+//     clone: "structuredClone(obj)", // Handles circular refs
+//     traverse: "/* Custom traversal with WeakSet tracking */"
+//   },
+//   warnings: ["Cannot use JSON.stringify directly"]
+// }
+```
+
+### 7.5 Symbol Property Handling
+
+```typescript
+const sym = Symbol("secret");
 const obj = {
-  public: 'visible',
-  [sym]: 'hidden'
+  visible: "yes",
+  [sym]: "hidden",
+  [Symbol.toStringTag]: "MyObject"
 };
 
-// Include symbols in analysis?
-await explain(obj, { includeSymbols: true });
-// "Object with public field and one symbol property..."
-
-await semanticEquals(obj1, obj2, { includeSymbols: true });
+await Object.analyzeSymbolProperties(obj);
+// Returns: {
+//   stringKeys: ["visible"],
+//   symbolKeys: [sym, Symbol.toStringTag],
+//   wellKnownSymbols: {
+//     [Symbol.toStringTag]: { value: "MyObject", effect: "Changes Object.prototype.toString output" }
+//   },
+//   customSymbols: {
+//     [sym]: { value: "hidden", accessibility: "Only with symbol reference" }
+//   },
+//   enumerationBehavior: {
+//     "Object.keys": ["visible"],
+//     "Object.getOwnPropertyNames": ["visible"],
+//     "Object.getOwnPropertySymbols": [sym, Symbol.toStringTag],
+//     "Reflect.ownKeys": ["visible", sym, Symbol.toStringTag]
+//   }
+// }
 ```
 
-### 7.4 Getters/Setters and Computed Properties
+### 7.6 Proxy Object Analysis
 
 ```typescript
-const obj = {
-  _value: 100,
-  get doubled() { return this._value * 2; },
-  get quadrupled() { return this._value * 4; }
+const handler = {
+  get(target, prop) {
+    console.log(`Accessed: ${prop}`);
+    return target[prop];
+  }
 };
+const proxied = new Proxy({ a: 1 }, handler);
 
-// Evaluate getters or just describe?
-await explain(obj, { evaluateGetters: true });
-// "Object with value 100, computed doubled (200) and quadrupled (400)"
-
-await explain(obj, { evaluateGetters: false });
-// "Object with internal value and computed properties doubled and quadrupled"
-```
-
-### 7.5 Functions as Values
-
-```typescript
-const config = {
-  validator: (x) => x > 0,
-  transformer: function double(x) { return x * 2; },
-  callback: async (data) => { /* ... */ }
-};
-
-// How to handle function values?
-await explain(config, { functionHandling: 'describe' });
-// "Configuration object with three function properties:
-//  - validator: checks if value is greater than 0
-//  - transformer: named 'double', multiplies by 2
-//  - callback: async function for data processing"
-```
-
-### 7.6 Non-Enumerable Properties
-
-```typescript
-const obj = { visible: true };
-Object.defineProperty(obj, 'hidden', {
-  value: 'secret',
-  enumerable: false
-});
-
-await semanticEquals(obj, { visible: true }, {
-  includeNonEnumerable: true
-});
-// false - obj has hidden property
-
-await semanticEquals(obj, { visible: true }, {
-  includeNonEnumerable: false
-});
-// true - only comparing enumerable
-```
-
-### 7.7 Frozen/Sealed Objects
-
-```typescript
-const frozen = Object.freeze({ immutable: true });
-
-await semanticValidate(frozen, {
-  canBeModified: true
-});
-// { valid: false, reason: 'Object is frozen and cannot be modified' }
-```
-
-### 7.8 Proxy Objects
-
-```typescript
-const proxy = new Proxy(target, handler);
-
-// Detect proxy nature?
-await explain(proxy, { detectProxy: true });
-// "This appears to be a Proxy wrapper around..."
-
-// Compare proxy to target?
-await semanticEquals(proxy, target, { unwrapProxy: true });
-```
-
-### 7.9 WeakRef and FinalizationRegistry
-
-```typescript
-const ref = new WeakRef(someObject);
-
-await explain(ref, { followWeakRefs: true });
-// Attempts to deref and explain underlying object
-
-await explain(ref, { followWeakRefs: false });
-// "WeakRef to object (may be garbage collected)"
-```
-
-### 7.10 Performance Considerations
-
-```typescript
-// For large objects, LLM calls are expensive
-
-// Streaming for large objects
-for await (const chunk of semanticDiff.stream(hugeObj1, hugeObj2)) {
-  console.log(chunk);  // Progressive diff results
-}
-
-// Sampling for very large objects
-await semanticEquals(massive1, massive2, {
-  strategy: 'sample',
-  sampleSize: 100,  // Check 100 random paths
-  confidence: 0.95
-});
-
-// Caching for repeated operations
-const cache = createSemanticCache();
-await semanticEquals(obj1, obj2, { cache });  // First call
-await semanticEquals(obj1, obj3, { cache });  // Reuses obj1 analysis
+await Object.analyzeProxy(proxied);
+// Returns: {
+//   isProxy: true,
+//   detectMethod: "Cannot reliably detect - using heuristics",
+//   trappedOperations: ["get"],
+//   potentialSideEffects: ["Logging on property access"],
+//   securityConsiderations: [
+//     "Proxy may intercept and modify values",
+//     "May have performance implications"
+//   ],
+//   recommendations: [
+//     "Document proxy behavior in API",
+//     "Consider membrane pattern for security"
+//   ]
+// }
 ```
 
 ---
 
 ## 8. Wild Ideas
 
-### 8.1 Self-Documenting Objects
+### 8.1 Object Archaeology
 
 ```typescript
-import { documentable } from 'semantic-primitives';
-
-const config = documentable({
-  maxRetries: 3,
-  timeout: 5000,
-  endpoints: ['api.example.com']
+// Analyze an object's history and evolution
+await Object.archaeology(mysteryObject, {
+  sourceCode: "./src",
+  gitHistory: true
 });
-
-// Object can explain itself
-console.log(await config.explain());
-// "Network configuration: 3 retry attempts, 5 second timeout, single endpoint"
-
-// Generate documentation
-console.log(await config.toDocumentation({ format: 'markdown' }));
-// ## Configuration
-// | Field | Type | Description |
-// | maxRetries | number | Maximum retry attempts (default: 3) |
-// ...
-```
-
-### 8.2 Conversational Objects
-
-```typescript
-import { conversational } from 'semantic-primitives';
-
-const data = conversational(complexDataset);
-
-// Chat with your data
-const answer = await data.ask('What percentage of users are from Europe?');
-// "Based on the location data, 34% of users are from European countries"
-
-const answer2 = await data.ask('And how does that compare to last month?');
-// "European users increased by 5% compared to the previous period"
-
-// It remembers context!
-```
-
-### 8.3 Object Intentions
-
-```typescript
-import { intentional } from 'semantic-primitives';
-
-// Objects that know their purpose
-const request = intentional({
-  userId: '123',
-  action: 'delete',
-  target: 'account'
-}, { intent: 'user account deletion request' });
-
-// Guard against misuse
-request.validateUse('logging this to public audit trail');
-// Warning: Object contains account deletion intent - ensure proper authorization
-
-request.validateUse('sending to account deletion service');
-// OK: Usage matches intended purpose
-```
-
-### 8.4 Semantic Observables
-
-```typescript
-import { observe } from 'semantic-primitives';
-
-const user = observe({
-  name: 'John',
-  balance: 100,
-  status: 'active'
-});
-
-// Subscribe to semantic changes
-user.on('financial state changed', (event) => {
-  console.log(event);  // { field: 'balance', meaning: 'funds decreased' }
-});
-
-user.on('account status concern', (event) => {
-  alert('User account may have issues');
-});
-
-user.balance = 0;  // Triggers 'financial state changed'
-user.status = 'suspended';  // Triggers 'account status concern'
-```
-
-### 8.5 Object Telepathy (Cross-Object Inference)
-
-```typescript
-import { telepathy } from 'semantic-primitives';
-
-const order = { orderId: 'ORD-123', items: [...], total: 99.99 };
-const user = { userId: 'USR-456', name: 'Jane' };
-const shipping = { trackingId: 'TRK-789', status: 'in transit' };
-
-// Connect them semantically
-const context = await telepathy.connect([order, user, shipping]);
-
-await context.ask('Will Jane receive her order on time?');
-// "Based on the shipping status 'in transit' and typical delivery times,
-//  Jane's order ORD-123 should arrive within 2-3 business days."
-
-await context.ask('Is this a high-value customer?');
-// "Cannot determine - need historical order data to assess customer value"
-```
-
-### 8.6 Object DNA / Fingerprinting
-
-```typescript
-import { fingerprint } from 'semantic-primitives';
-
-const fp = await fingerprint(dataObject);
-// {
-//   structuralHash: 'abc123',
-//   semanticSignature: 'user-profile-v2-extended',
-//   characteristics: ['PII-present', 'time-series-data', 'nested-3-levels'],
-//   estimatedOrigin: 'CRM system export',
-//   confidence: 0.87
-// }
-
-// Find similar objects
-const similar = await fingerprint.findSimilar(dataObject, objectDatabase);
-```
-
-### 8.7 Object Evolution Simulation
-
-```typescript
-import { simulate } from 'semantic-primitives';
-
-const userNow = { signupDate: '2024-01-01', orders: 2, balance: 100 };
-
-const userFuture = await simulate.evolve(userNow, {
-  timeframe: '6 months',
-  behavior: 'typical active user'
-});
-// {
-//   signupDate: '2024-01-01',
-//   orders: 15,  // Estimated future value
-//   balance: 450,
-//   predictedEvents: ['will likely upgrade to premium', 'may refer friends']
-// }
-```
-
-### 8.8 Semantic Compression
-
-```typescript
-import { compress, decompress } from 'semantic-primitives';
-
-const verbose = {
-  userInformation: {
-    firstName: 'John',
-    lastName: 'Doe',
-    electronicMailAddress: 'john.doe@example.com'
-  },
-  purchaseDetails: {
-    itemsPurchased: [{ nameOfItem: 'Widget', quantityPurchased: 2 }]
-  }
-};
-
-const compressed = await compress(verbose);
-// {
-//   user: { name: 'John Doe', email: 'john.doe@example.com' },
-//   purchase: { items: [{ name: 'Widget', qty: 2 }] }
-// }
-// Also stores semantic mapping for lossless decompression
-
-const restored = await decompress(compressed);
-// Restores original verbose structure
-```
-
-### 8.9 Object Mood/Sentiment
-
-```typescript
-import { sentiment } from 'semantic-primitives';
-
-const review = {
-  rating: 2,
-  title: "Disappointed",
-  body: "Product broke after one week. Support was unhelpful.",
-  response: "We apologize for the inconvenience..."
-};
-
-const mood = await sentiment(review);
-// {
-//   overall: 'negative',
-//   aspects: {
-//     product: { sentiment: 'very negative', keywords: ['broke'] },
-//     support: { sentiment: 'negative', keywords: ['unhelpful'] },
-//     companyResponse: { sentiment: 'neutral-apologetic' }
-//   },
-//   tension: 'high',  // Mismatch between customer and response
-//   recommendation: 'Escalate to customer success team'
-// }
-```
-
-### 8.10 Object Time Travel
-
-```typescript
-import { timeMachine } from 'semantic-primitives';
-
-const user = timeMachine.track({
-  name: 'John',
-  level: 1,
-  xp: 0
-});
-
-user.level = 5;
-user.xp = 1000;
-user.name = 'John the Great';
-
-// Query past states semantically
-await user.when('was a beginner');
-// Returns snapshot: { name: 'John', level: 1, xp: 0 }
-
-await user.when('reached intermediate level');
-// Returns snapshot: { name: 'John', level: 5, xp: 500 }
-
-await user.why('name changed');
-// "Name was updated when user reached level 5, possibly a title/achievement system"
-```
-
-### 8.11 Object Negotiation
-
-```typescript
-import { negotiate } from 'semantic-primitives';
-
-const buyerOffer = { price: 80, deliveryDays: 7, quantity: 100 };
-const sellerTerms = { minPrice: 100, deliveryDays: 14, maxQuantity: 50 };
-
-const result = await negotiate(buyerOffer, sellerTerms, {
-  goal: 'find mutually acceptable terms',
-  priorities: {
-    buyer: ['price', 'quantity'],
-    seller: ['price', 'deliveryDays']
-  }
-});
-// {
-//   agreement: {
-//     price: 95,
-//     deliveryDays: 10,
-//     quantity: 75
-//   },
-//   compromises: {
-//     buyer: ['accepted higher price', 'reduced quantity'],
-//     seller: ['accepted lower price', 'faster delivery']
-//   },
-//   fairnessScore: 0.82
-// }
-```
-
-### 8.12 Object Dreams (Generative Expansion)
-
-```typescript
-import { dream } from 'semantic-primitives';
-
-const seedProduct = {
-  name: 'Smart Water Bottle',
-  features: ['temperature tracking', 'hydration reminders']
-};
-
-const variations = await dream(seedProduct, {
-  count: 5,
-  creativity: 'high',
-  constraints: ['must be water bottle', 'price under $50']
-});
-// [
-//   { name: 'Smart Water Bottle Pro', features: [..., 'UV sterilization'] },
-//   { name: 'Smart Water Bottle Kids', features: [..., 'gamified drinking'] },
-//   { name: 'Smart Water Bottle Sport', features: [..., 'electrolyte tracking'] },
-//   ...
-// ]
-```
-
-### 8.13 Semantic Garbage Collection Hints
-
-```typescript
-import { lifecycle } from 'semantic-primitives';
-
-const session = lifecycle.track({
-  userId: '123',
-  cart: [...],
-  lastActivity: Date.now()
-});
-
-// LLM infers lifecycle state
-await session.assessLifecycle();
-// {
-//   state: 'stale',
-//   reason: 'No activity for 30 minutes with abandoned cart',
-//   recommendation: 'Send cart reminder email before cleanup',
-//   canGarbageCollect: false,
-//   gcReadyIn: '24 hours'
-// }
-```
-
-### 8.14 Object Therapy (Debugging Aid)
-
-```typescript
-import { diagnose } from 'semantic-primitives';
-
-const brokenState = {
-  user: { id: null, name: 'John' },
-  cart: { items: [{ qty: -1 }], total: NaN },
-  session: { expired: true, token: 'valid-token-123' }
-};
-
-const diagnosis = await diagnose(brokenState);
-// {
-//   issues: [
-//     { severity: 'critical', field: 'user.id', problem: 'null user ID', likelyCause: 'auth failure' },
-//     { severity: 'error', field: 'cart.items[0].qty', problem: 'negative quantity', likelyCause: 'validation bypass' },
-//     { severity: 'error', field: 'cart.total', problem: 'NaN value', likelyCause: 'arithmetic with undefined' },
-//     { severity: 'warning', field: 'session', problem: 'contradictory state', note: 'expired but valid token' }
+// Returns: {
+//   likelyOrigin: "Created in UserService.createUser()",
+//   evolutionTimeline: [
+//     { commit: "abc123", change: "Added 'email' field" },
+//     { commit: "def456", change: "Renamed 'userName' to 'name'" }
 //   ],
-//   suggestedFixes: [...],
-//   rootCause: 'Likely authentication flow failure cascaded to cart corruption'
+//   creators: ["alice@company.com", "bob@company.com"],
+//   purpose: "User domain entity",
+//   designDecisions: ["Chose flat structure over nested for simplicity"]
 // }
 ```
 
-### 8.15 Object Synthesis
+### 8.2 Object Personality Profile
 
 ```typescript
-import { synthesize } from 'semantic-primitives';
-
-// Generate objects from description
-const user = await synthesize('a typical enterprise software user');
-// {
-//   id: 'usr_8x7k2m',
-//   email: 'sarah.johnson@acme-corp.com',
-//   role: 'project manager',
-//   department: 'Engineering',
-//   permissions: ['read', 'write', 'manage-team'],
-//   preferences: { theme: 'light', timezone: 'America/New_York' }
-// }
-
-// Generate test data
-const testCases = await synthesize('edge cases for user registration', { count: 10 });
-// Various malformed, boundary, and unusual user objects
-```
-
-### 8.16 Cross-Cultural Object Translation
-
-```typescript
-import { localize } from 'semantic-primitives';
-
-const usAddress = {
-  street: '123 Main St',
-  city: 'Springfield',
-  state: 'IL',
-  zip: '62701',
-  country: 'USA'
-};
-
-const jpAddress = await localize(usAddress, { targetCulture: 'JP' });
-// {
-//   postalCode: '〒XXX-XXXX',  // Would be actual if real address
-//   prefecture: 'イリノイ州',
-//   city: 'スプリングフィールド',
-//   streetAddress: 'メイン通り123',
-//   country: 'アメリカ合衆国',
-//   format: 'Japanese postal standard'
+// Anthropomorphize objects for educational/debugging purposes
+await Object.personalityProfile(complexObject);
+// Returns: {
+//   personality: "The Organizer",
+//   traits: ["structured", "predictable", "hierarchical"],
+//   description: "This object likes to keep things tidy with clear nested structures...",
+//   communicationStyle: "Formal and well-documented",
+//   quirks: ["Has a secret Symbol property", "Freezes up when you try to change it"],
+//   bestFriends: ["Array", "Map"], // Types it works well with
+//   enemies: ["JSON.stringify (circular refs)"]
 // }
 ```
 
-### 8.17 Object Empathy (User Understanding)
+### 8.3 Object Therapist
 
 ```typescript
-import { empathize } from 'semantic-primitives';
-
-const userAction = {
-  type: 'cancel-subscription',
-  afterMonths: 2,
-  lastFeatureUsed: 'basic-export',
-  supportTickets: 3
-};
-
-const understanding = await empathize(userAction);
-// {
-//   likelyFeelings: ['frustrated', 'disappointed'],
-//   inferredReasons: [
-//     'Advanced features not discovered or too complex',
-//     'Multiple support needs suggest usability issues',
-//     'Short tenure indicates failed onboarding'
+// Diagnose and fix problematic objects
+await Object.therapy(problematicObject);
+// Returns: {
+//   diagnosis: [
+//     "Suffering from property sprawl (too many top-level keys)",
+//     "Identity crisis (inconsistent naming conventions)",
+//     "Trust issues (excessive defensive copying)"
 //   ],
-//   intervention: {
-//     timing: 'before cancellation finalizes',
-//     approach: 'offer guided tour of advanced features',
-//     tone: 'apologetic and helpful, not desperate'
-//   }
-// }
-```
-
-### 8.18 Object Contracts
-
-```typescript
-import { contract } from 'semantic-primitives';
-
-const apiResponse = contract({
-  pattern: 'REST API response',
-  guarantees: [
-    'status will be number 100-599',
-    'data will match request type',
-    'errors will be actionable'
-  ],
-  violations: (v) => {
-    throw new ContractViolationError(v);
-  }
-});
-
-// Any data assigned is validated against semantic contract
-apiResponse.status = 'OK';  // Throws: status should be number, not string
-```
-
-### 8.19 Object Archaeology
-
-```typescript
-import { archaeology } from 'semantic-primitives';
-
-const legacyData = {
-  'usr-nm': 'JSMITH',
-  'acc-bal': '00010050',
-  'lst-lgn': '240115'
-};
-
-const excavation = await archaeology(legacyData);
-// {
-//   era: 'COBOL/mainframe origin',
-//   fieldMappings: {
-//     'usr-nm': { modernName: 'username', type: 'string' },
-//     'acc-bal': { modernName: 'accountBalance', type: 'decimal', format: 'cents' },
-//     'lst-lgn': { modernName: 'lastLogin', type: 'date', format: 'YYMMDD' }
+//   treatment: {
+//     refactoring: "Group related properties into nested objects",
+//     namingTherapy: "Standardize on camelCase",
+//     trustExercises: "Consider using TypeScript for compile-time safety"
 //   },
-//   modernized: {
-//     username: 'JSMITH',
-//     accountBalance: 100.50,
-//     lastLogin: new Date('2024-01-15')
-//   }
+//   prognosis: "Good with treatment",
+//   healedVersion: { /* Refactored object */ }
 // }
 ```
 
-### 8.20 Semantic Object Composition
+### 8.4 Object Dating Service
 
 ```typescript
-import { compose } from 'semantic-primitives';
-
-const personality = { temperament: 'friendly', energy: 'high' };
-const skills = { languages: ['en', 'es'], expertise: 'customer-service' };
-const availability = { timezone: 'PST', hours: '9-5' };
-
-const agent = await compose([personality, skills, availability], {
-  as: 'customer support agent profile',
-  resolve: 'merge-and-infer'
+// Find compatible objects that could be merged or work together
+await Object.findMatch(myObject, {
+  codebase: "./src",
+  compatibility: "structural" // "structural" | "behavioral" | "semantic"
 });
-// {
-//   name: undefined,  // Not inferable
-//   temperament: 'friendly',
-//   energy: 'high',
-//   languages: ['en', 'es'],
-//   expertise: 'customer-service',
-//   timezone: 'PST',
-//   workingHours: '9:00-17:00',
-//   suitableFor: ['live chat', 'phone support', 'spanish-speaking customers'],
-//   strengthScore: 0.85
+// Returns: {
+//   matches: [
+//     {
+//       object: "UserPreferences from ./src/settings.ts",
+//       compatibility: 0.89,
+//       mergeability: "high",
+//       relationship: "Could extend your object nicely",
+//       mergedPreview: { /* Preview of merged object */ }
+//     }
+//   ],
+//   incompatible: [
+//     { object: "DatabaseConfig", reason: "Conflicting 'id' field semantics" }
+//   ]
+// }
+```
+
+### 8.5 Object Time Travel
+
+```typescript
+// Predict object evolution or revert to past state
+await Object.timeMachine(currentState, {
+  direction: "future",
+  context: "This object represents user preferences in a SaaS app"
+});
+// Returns: {
+//   predictions: [
+//     { likelihood: 0.8, change: "Will likely add 'darkMode' preference" },
+//     { likelihood: 0.6, change: "May need 'notificationSettings' nested object" },
+//     { likelihood: 0.4, change: "Could require 'integrations' array for third-party apps" }
+//   ],
+//   suggestedEvolution: {
+//     /* Future-proofed version of the object */
+//   },
+//   migrations: ["v1 -> v2 migration script"]
+// }
+```
+
+### 8.6 Object Whisperer
+
+```typescript
+// Natural language interface to objects
+const db = await Object.whisper(databaseConnection);
+
+await db.ask("What tables can you access?");
+// Returns: ["users", "posts", "comments"]
+
+await db.ask("Show me users who signed up last week");
+// Generates and executes: SELECT * FROM users WHERE created_at > NOW() - INTERVAL '1 week'
+
+await db.ask("What's the most efficient way to query posts by user?");
+// Returns: { recommendation: "Add index on user_id", explanation: "..." }
+```
+
+### 8.7 Object Genetics
+
+```typescript
+// Create new objects by "breeding" existing ones
+const mother = { name: "string", age: "number", email: "string" };
+const father = { id: "uuid", role: "enum", permissions: "array" };
+
+await Object.breed(mother, father, {
+  traits: "dominant-from-mother",
+  mutations: true
+});
+// Returns: {
+//   offspring: {
+//     type: "{ id: uuid, name: string, email: string, role: enum }",
+//     traits: {
+//       fromMother: ["name", "email"],
+//       fromFather: ["id", "role"],
+//       mutations: ["Combined permissions concept with role"]
+//     }
+//   },
+//   alternativeOffspring: [/* Other valid combinations */]
+// }
+```
+
+### 8.8 Object Forensics
+
+```typescript
+// Investigate objects for security/debugging
+await Object.forensics(suspiciousObject, {
+  investigationType: "security"
+});
+// Returns: {
+//   findings: [
+//     { severity: "critical", issue: "__proto__ property detected", recommendation: "Sanitize input" },
+//     { severity: "high", issue: "Executable function in data object", location: "onClick" },
+//     { severity: "medium", issue: "Potential SQL injection in 'query' field" }
+//   ],
+//   chainOfCustody: "Object passed through: parse() -> transform() -> render()",
+//   tamperEvidence: ["Modified after creation based on accessor patterns"],
+//   cleanVersion: { /* Sanitized object */ }
+// }
+```
+
+### 8.9 Object Translator
+
+```typescript
+// Translate objects between paradigms/frameworks
+await Object.translate(reduxState, {
+  from: "redux",
+  to: "mobx"
+});
+// Returns: {
+//   translated: `
+//     class Store {
+//       @observable users = [];
+//       @observable loading = false;
+//
+//       @action
+//       setUsers(users) {
+//         this.users = users;
+//       }
+//     }
+//   `,
+//   mappings: {
+//     "state.users": "@observable users",
+//     "FETCH_USERS_SUCCESS": "@action setUsers"
+//   },
+//   warnings: ["MobX doesn't have built-in time-travel debugging"]
+// }
+```
+
+### 8.10 Object Dreams
+
+```typescript
+// Generate variations and possibilities from an object
+await Object.dream(baseObject, {
+  creativity: 0.8,
+  constraints: ["must be JSON-serializable", "max 10 properties"]
+});
+// Returns: {
+//   dreams: [
+//     { name: "Minimalist", object: { /* Simplified version */ } },
+//     { name: "Enterprise", object: { /* Over-engineered version */ } },
+//     { name: "Futuristic", object: { /* With predicted future fields */ } },
+//     { name: "Artistic", object: { /* Unusual but valid structure */ } }
+//   ],
+//   inspiration: "Based on patterns from 10,000 similar objects in open source"
+// }
+```
+
+### 8.11 Object Simulation
+
+```typescript
+// Simulate object behavior over time
+await Object.simulate(shoppingCart, {
+  scenario: "Black Friday sale",
+  duration: "24 hours",
+  events: ["high traffic", "inventory depletion", "price changes"]
+});
+// Returns: {
+//   timeline: [
+//     { time: "00:00", state: { items: 0, total: 0 }, event: "Sale starts" },
+//     { time: "00:05", state: { items: 15, total: 450.00 }, event: "Traffic spike" },
+//     // ...
+//   ],
+//   stressPoints: ["Cart total calculation at 10,000 items"],
+//   recommendations: ["Add cart item limit", "Implement lazy price calculation"],
+//   maxObservedState: { items: 847, total: 25410.00 }
+// }
+```
+
+### 8.12 Object Meditation
+
+```typescript
+// Simplify and find the essence of an object
+await Object.meditate(bloatedObject, {
+  goal: "inner peace", // "inner peace" | "enlightenment" | "minimalism"
+  duration: "deep"
+});
+// Returns: {
+//   essence: {
+//     /* The minimal, essential structure */
+//   },
+//   removedAttachments: ["Redundant fields", "Circular references", "Dead code"],
+//   mantra: "An object is not its properties; it is the relationships between them",
+//   zenGarden: `
+//     ┌─────────────────┐
+//     │     user        │
+//     │   ┌─────┐       │
+//     │   │ id  │       │
+//     │   └──┬──┘       │
+//     │      │          │
+//     │   ┌──▼──┐       │
+//     │   │name │       │
+//     │   └─────┘       │
+//     └─────────────────┘
+//   `,
+//   wisdom: "You had 47 properties. You needed 5."
 // }
 ```
 
 ---
 
-## Summary: The Semantic Object Vision
+## 9. Integration Patterns
 
-The `object` type, being the fundamental non-primitive, is the ideal canvas for LLM enhancement. By adding semantic understanding, we transform static data containers into intelligent, self-aware entities that:
+### 9.1 With TypeScript
 
-1. **Understand their own meaning** and can explain themselves
-2. **Recognize equivalence** beyond structural equality
-3. **Validate against intent**, not just schema
-4. **Transform intelligently** between representations
-5. **Evolve and adapt** over time
-6. **Communicate** with developers in natural language
-7. **Predict** their own futures and diagnose their own problems
+```typescript
+// Generate types from runtime objects
+const runtimeObj = await fetchData();
 
-This is not just about adding AI to objects - it's about creating a new paradigm where data structures become active participants in software systems, capable of reasoning about themselves and their relationships to other data.
+const types = await Object.generateTypes(runtimeObj, {
+  style: "interface", // "interface" | "type" | "class" | "zod" | "io-ts"
+  strictness: "strict",
+  exportAs: "DataResponse"
+});
 
-The key challenges are:
-- Performance (LLM calls are expensive)
-- Determinism (LLM outputs vary)
-- Trust (when to rely on semantic vs structural checks)
-- Complexity (when does "smart" become "unpredictable"?)
+// Writes to: ./types/generated/DataResponse.ts
+await types.writeTo("./types/generated/");
+```
 
-But the potential is enormous: code that truly understands the meaning of its data.
+### 9.2 With Testing
+
+```typescript
+// Generate test fixtures
+await Object.generateFixtures(UserSchema, {
+  count: 10,
+  scenarios: ["valid", "edge-case", "invalid"],
+  seedStrategy: "deterministic"
+});
+// Returns: {
+//   valid: [/* 10 valid user objects */],
+//   edgeCases: [/* Empty strings, max values, unicode, etc. */],
+//   invalid: [/* Objects that should fail validation */],
+//   testCode: "/* Jest/Vitest test boilerplate */"
+// }
+```
+
+### 9.3 With Documentation
+
+```typescript
+// Generate documentation from objects
+await Object.document(APIResponse, {
+  format: "markdown", // "markdown" | "openapi" | "jsdoc"
+  includeExamples: true,
+  audienceLevel: "intermediate"
+});
+// Returns formatted documentation with:
+// - Property descriptions
+// - Type information
+// - Example values
+// - Common pitfalls
+// - Related objects
+```
 
 ---
 
-*This brainstorming document explores possibilities - actual implementation would require careful consideration of performance, reliability, and practical utility.*
+## Summary
+
+The Object constructor interface offers tremendous opportunities for LLM enhancement:
+
+1. **Understanding** - LLMs can explain what objects do, why they're structured certain ways, and how they relate to other code
+2. **Validation** - Beyond structural validation to semantic validation based on context and intent
+3. **Transformation** - Intelligent merging, normalization, and translation between formats
+4. **Generation** - Creating types, tests, documentation, and even new objects from examples
+5. **Analysis** - Deep inspection of prototypes, security issues, and design patterns
+6. **Creative Applications** - Object archaeology, therapy, genetics, and more
+
+The key insight is that Objects are not just data containers - they encode *intent*, *relationships*, and *domain knowledge* that an LLM can understand and reason about in ways traditional static analysis cannot.

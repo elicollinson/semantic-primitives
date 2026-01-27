@@ -1,6 +1,6 @@
 {
   "name": "semantic-primitives",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TypeScript library providing LLM-enhanced primitive types with built-in semantic understanding",
   "type": "module",
   "main": "./dist/index.js",
