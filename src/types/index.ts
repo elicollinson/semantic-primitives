@@ -241,3 +241,49 @@ export {
   type InferSchemaResult as ObjectLiteralInferSchemaResult,
   type SensitiveResult as ObjectLiteralSensitiveResult,
 } from './object-literal/index.ts';
+
+// SemanticCallable
+export {
+  SemanticCallable,
+  type InferredSignature,
+  type WrapperSuggestion,
+  type CallableTestCase,
+  type DetectedIssue,
+  type SafetyResult as CallableSafetyResult,
+} from './callable/index.ts';
+
+// SemanticConstructable
+export {
+  SemanticConstructable,
+  type Constructor,
+  type ConstructableSemanticEqualsResult,
+  type InstanceShapeResult,
+  type CreateValidatedResult,
+  type DocFormat,
+} from './constructable/index.ts';
+
+// SemanticTuple
+export {
+  SemanticTuple,
+  type PositionalMeaning,
+  type InferPositionalMeaningResult,
+  type ValidateRelationshipResult,
+  type ToObjectResult,
+  type GetByLabelResult,
+  type StructureIssue,
+  type ValidateStructureResult,
+  type SemanticEqualsResultWithReason as TupleSemanticEqualsResult,
+  type DetectPatternResult as TupleDetectPatternResult,
+} from './tuple/index.ts';
+
+// SemanticRecord
+export {
+  SemanticRecord,
+  type RecordSemanticEqualsResult,
+  type ValidateKeysResult,
+  type ValidateValuesResult,
+  type InvalidEntry,
+  type RecordInferPurposeResult,
+  type SemanticGetResult as RecordSemanticGetResult,
+  type MissingSuggestion as RecordMissingSuggestion,
+} from './record/index.ts';
