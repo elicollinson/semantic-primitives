@@ -1,0 +1,33 @@
+# Test files
+**/__tests__/
+**/*.test.ts
+**/*.spec.ts
+**/mocks.ts
+
+# Development files
+.env*
+!.env.example
+*.log
+.DS_Store
+
+# Build artifacts
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+
+# Documentation source (published docs are in dist)
+docs/
+
+# Development directories
+brainstorming/
+research/
+features/
+
+# Config files not needed in package
+eslint.config.js
+tsconfig.json
+CLAUDE.md
+node-types.md
+bun.lock
